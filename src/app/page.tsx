@@ -1,9 +1,20 @@
+import { AboutSection } from "@/components/sections/about-section";
+import { ContactSection } from "@/components/sections/contact-section";
+import { ProjectsSection } from "@/components/sections/projects-section";
+import { ServicesSection } from "@/components/sections/services-section";
+import { GlobalNav } from "@/components/global-nav";
+import { ProjectSelectionProvider } from "@/lib/project-selection";
+
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center bg-white dark:bg-black">
-      <p className="font-mono text-sm text-zinc-500 dark:text-zinc-400">
-        azouzi.design — under construction
-      </p>
-    </main>
+    <ProjectSelectionProvider>
+      <GlobalNav />
+      <main className="h-svh snap-y snap-mandatory overflow-y-auto">
+        <AboutSection />
+        <ProjectsSection />
+        <ServicesSection />
+        <ContactSection />
+      </main>
+    </ProjectSelectionProvider>
   );
 }
