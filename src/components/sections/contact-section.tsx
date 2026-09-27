@@ -15,26 +15,29 @@ function ContactRow({
   badge?: string;
 }) {
   return (
-    <div className="flex w-full items-start justify-between rounded-xl px-2 py-1">
-      <div className="flex flex-1 items-center gap-2 font-medium">
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex w-full items-start justify-between rounded-xl px-2 py-1 transition-colors duration-150 hover:bg-[#f8f8f8]"
+    >
+      <span className="flex flex-1 items-center gap-2 font-medium">
         {label}
         {badge && (
-          <span className="rounded-[2px] bg-teal-700 px-1 py-px text-sm font-medium tracking-[-0.07px] text-white">
+          <span className="rounded-[2px] bg-teal-700 px-1 py-px text-[13px] font-medium tracking-[-0.07px] text-white">
             {badge}
           </span>
         )}
-      </div>
-      <a href={href} target="_blank" rel="noopener noreferrer" className={`${linkClasses} flex-1 text-right`}>
-        {value}
-      </a>
-    </div>
+      </span>
+      <span className={`${linkClasses} flex-1 text-right`}>{value}</span>
+    </a>
   );
 }
 
 export function ContactSection() {
   return (
     <SectionShell id="contact">
-      <div className="absolute left-1/2 top-1/2 flex w-[720px] -translate-x-1/2 -translate-y-1/2 flex-col gap-8 text-xl tracking-[-0.2px] text-gray-1000">
+      <div className="absolute left-1/2 top-1/2 flex w-[720px] -translate-x-1/2 -translate-y-1/2 flex-col gap-8 text-[16px] tracking-[-0.2px] text-gray-1000">
         <div className="flex flex-col">
           <ContactRow
             label="Book a call"

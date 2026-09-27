@@ -22,7 +22,11 @@ export function SelectProjectLink({
   }
 
   return (
-    <button type="button" onClick={handleClick} className={className}>
+    <button
+      type="button"
+      onClick={handleClick}
+      className={`cursor-pointer ${className ?? ""}`}
+    >
       {children}
     </button>
   );

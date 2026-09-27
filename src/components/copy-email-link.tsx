@@ -19,7 +19,7 @@ export function CopyEmailLink({ email }: { email: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="text-teal-700 underline decoration-dotted underline-offset-2"
+      className="cursor-pointer font-medium text-teal-700 underline decoration-dotted underline-offset-2"
     >
       {copied ? "Copied!" : "Copy Email"}
     </button>
