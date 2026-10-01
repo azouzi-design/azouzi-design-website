@@ -1,11 +1,11 @@
 // Draws the badge front/back (Figma "card-front" 825:110, "card-back" 825:194)
 // onto canvases used as textures, and exposes their clickable areas.
 
-import { SURFACE } from "./card-surface";
+import type { CardLayout } from "./lanyard-layout";
 
-export const FACE_W = 428;
-export const FACE_H = 304;
 const SCALE = 3;
+/** Margin between the card edge and its content. */
+const EDGE = 12;
 
 const BG = "#121212";
 const WHITE = "#ffffff";
@@ -116,35 +116,37 @@ function dottedUnderline(
   }
 }
 
-function createCanvas() {
+function createCanvas({ pxW, pxH }: CardLayout) {
   const canvas = document.createElement("canvas");
-  canvas.width = FACE_W * SCALE;
-  canvas.height = FACE_H * SCALE;
+  canvas.width = pxW * SCALE;
+  canvas.height = pxH * SCALE;
   const ctx = canvas.getContext("2d")!;
   ctx.scale(SCALE, SCALE);
   return { canvas, ctx };
 }
 
 export type CardFace = {
+  /** Face size in px, for converting UV hits to canvas coordinates. */
+  width: number;
+  height: number;
   canvas: HTMLCanvasElement;
   hotspots: Hotspot[];
   render: (state: FaceState) => void;
 };
 
-export async function createFrontFace(): Promise<CardFace> {
+export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
+  const { pxW: FACE_W, pxH: FACE_H } = layout;
   const family = fontFamily();
   await Promise.all([
     document.fonts.load(`400 14px ${family}`),
     document.fonts.load(`500 14px ${family}`),
     document.fonts.load(`500 10px ${family}`),
   ]);
-  const [photo, decorator] = await Promise.all([
-    loadImage("/images/azouzi.jpg"),
-    loadImage("/images/card-front-decorator.svg"),
-  ]);
-  const { canvas, ctx } = createCanvas();
+  const decorator = await loadImage("/images/card-front-decorator.svg");
+  const { canvas, ctx } = createCanvas(layout);
 
-  // Layout: contact-links is 404 wide, centred, its centre 76px below the card's.
+  // Layout: contact links span the card between the edge margins.
+  const contentW = FACE_W - 2 * EDGE;
   setFont(ctx, 500, 14, -0.14);
   const line = normalLineHeight(ctx);
   const rowGap = 6;
@@ -155,10 +157,11 @@ export async function createFrontFace(): Promise<CardFace> {
   const totalHeight =
     blockHeights.reduce((a, b) => a + b, 0) +
     blockGap * (contactBlocks.length - 1);
-  const left = (FACE_W - 404) / 2;
-  const right = left + 404;
+  const left = EDGE;
+  const right = left + contentW;
   const rows: (Row & { y: number })[] = [];
-  let y = FACE_H / 2 + 76 - totalHeight / 2;
+  // Anchored to the bottom: 14.5px below the last row, as in the Figma frame.
+  let y = FACE_H - 14.5 - totalHeight;
   contactBlocks.forEach((block, b) => {
     block.forEach((row, i) => {
       rows.push({ ...row, y });
@@ -172,7 +175,7 @@ export async function createFrontFace(): Promise<CardFace> {
     href: row.href,
     x: left - ROW_PAD_X,
     y: row.y - ROW_PAD_Y,
-    w: 404 + ROW_PAD_X * 2,
+    w: contentW + ROW_PAD_X * 2,
     h: line.height + ROW_PAD_Y * 2,
   }));
 
@@ -180,31 +183,7 @@ export async function createFrontFace(): Promise<CardFace> {
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, FACE_W, FACE_H);
 
-    ctx.drawImage(decorator, 203, FACE_H - 272 - 20, 213, 20);
-
-    // image-azouzi: 96×96, 6px from the top-left. Radius is concentric with
-    // the card corner (card radius − inset) so the two curves run parallel.
-    const size = 96;
-    const px = 6;
-    const py = 6;
-    const radius = SURFACE.cornerRadiusPx - Math.min(px, py);
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.12)";
-    ctx.shadowOffsetX = 3 * SCALE;
-    ctx.shadowOffsetY = 5 * SCALE;
-    ctx.shadowBlur = 12 * SCALE;
-    ctx.fillStyle = BG;
-    ctx.beginPath();
-    ctx.roundRect(px, py, size, size, radius);
-    ctx.fill();
-    ctx.restore();
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(px, py, size, size, radius);
-    ctx.clip();
-    const pw = size * 1.107;
-    ctx.drawImage(photo, px - size * 0.0396, py, pw, size);
-    ctx.restore();
+    ctx.drawImage(decorator, FACE_W - EDGE - 213, 16, 213, 20);
 
     for (const row of rows) {
       const spot = hotspots.find((h) => h.id === row.id)!;
@@ -232,12 +211,15 @@ export async function createFrontFace(): Promise<CardFace> {
         const bh = badgeLine.height + 2;
         const bx = left + labelW + 8;
         const by = row.y + (line.height - bh) / 2;
+        ctx.save();
+        ctx.globalAlpha = 0.9;
         ctx.fillStyle = "#323232";
         ctx.beginPath();
         ctx.roundRect(bx, by, bw, bh, 2);
         ctx.fill();
         ctx.fillStyle = GRAY_600;
         ctx.fillText(row.badge, bx + 4, by + 1 + badgeLine.ascent);
+        ctx.restore();
       }
 
       setFont(ctx, 400, 14, -0.14);
@@ -251,19 +233,23 @@ export async function createFrontFace(): Promise<CardFace> {
   }
 
   render({ hover: null, pressed: null });
-  return { canvas, hotspots, render };
+  return { width: FACE_W, height: FACE_H, canvas, hotspots, render };
 }
 
-export async function createBackFace(): Promise<CardFace> {
+export async function createBackFace(layout: CardLayout): Promise<CardFace> {
+  const { pxW: FACE_W, pxH: FACE_H } = layout;
   const family = fontFamily();
   await document.fonts.load(`400 14px ${family}`);
   const decorator = await loadImage("/images/card-back-decorator.svg");
-  const { canvas, ctx } = createCanvas();
+  const { canvas, ctx } = createCanvas(layout);
+  // The name graphic spans the card width, keeping its 404 × 38 proportions.
+  const decoratorW = FACE_W - 2 * EDGE;
+  const decoratorH = (decoratorW * 38) / 404;
 
   function render() {
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, FACE_W, FACE_H);
-    ctx.drawImage(decorator, 12, FACE_H - 12 - 38, 404, 38);
+    ctx.drawImage(decorator, EDGE, FACE_H - EDGE - decoratorH, decoratorW, decoratorH);
 
     setFont(ctx, 400, 14, -0.14);
     const line = normalLineHeight(ctx);
@@ -276,12 +262,12 @@ export async function createBackFace(): Promise<CardFace> {
   }
 
   render();
-  return { canvas, hotspots: [], render };
+  return { width: FACE_W, height: FACE_H, canvas, hotspots: [], render };
 }
 
 export function hotspotAt(face: CardFace, uv: { x: number; y: number }) {
-  const x = uv.x * FACE_W;
-  const y = (1 - uv.y) * FACE_H;
+  const x = uv.x * face.width;
+  const y = (1 - uv.y) * face.height;
   return (
     face.hotspots.find(
       (h) => x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h,

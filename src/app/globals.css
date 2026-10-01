@@ -3,10 +3,12 @@
 /* Design tokens — mirror the Figma "ds/…" variables (Personal branding, Mar 2026). */
 :root {
   --ds-background-100: #ffffff; /* main card */
-  --ds-background-200: #fafafa; /* page, project cards */
+  --ds-background-200: #f6f6f6; /* page, project cards */
   --ds-gray-600: #a8a8a8; /* secondary text on dark */
   --ds-gray-700: #8f8f8f; /* links, badges */
   --ds-gray-1000: #171717; /* body text */
+  --selection-background: #121212; /* text selection, same as the badge card */
+  --focus-ring-radius: 8px;
 }
 
 @theme inline {
@@ -23,4 +25,22 @@ body {
   background: var(--ds-background-200);
   color: var(--ds-gray-1000);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Text selection: dark highlight instead of the browser blue. */
+::selection {
+  background: var(--selection-background);
+  color: var(--ds-background-100);
+}
+
+/* Keyboard focus ring: the link grey instead of the browser blue. */
+:focus-visible {
+  outline: 2px solid var(--ds-gray-700);
+  outline-offset: 3px;
+}
+
+/* The ring follows the element's corners; links and buttons have none, so
+   give them a rounded one. */
+:where(a, button):focus-visible {
+  border-radius: var(--focus-ring-radius);
 }

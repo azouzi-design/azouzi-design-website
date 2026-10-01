@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
@@ -15,11 +15,11 @@ import {
   type RigidBodyProps,
 } from "@react-three/rapier";
 import {
-  CARD_H,
-  CARD_W,
   CLIP,
   PX_PER_UNIT,
   SEGMENT,
+  getCardLayout,
+  type CardLayout,
 } from "./lanyard-layout";
 import {
   createBackFace,
@@ -159,7 +159,10 @@ function useCanvasTexture(
   return texture;
 }
 
-function useCardFace(create: () => Promise<CardFace>) {
+function useCardFace(
+  create: (layout: CardLayout) => Promise<CardFace>,
+  layout: CardLayout,
+) {
   const [state, setState] = useState<{
     face: CardFace;
     texture: THREE.CanvasTexture;
@@ -167,7 +170,7 @@ function useCardFace(create: () => Promise<CardFace>) {
   useEffect(() => {
     let cancelled = false;
     let texture: THREE.CanvasTexture | null = null;
-    create().then((face) => {
+    create(layout).then((face) => {
       if (cancelled) return;
       texture = new THREE.CanvasTexture(face.canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
@@ -178,7 +181,7 @@ function useCardFace(create: () => Promise<CardFace>) {
       cancelled = true;
       texture?.dispose();
     };
-  }, [create]);
+  }, [create, layout]);
   return state;
 }
 
@@ -198,7 +201,39 @@ const segmentProps: RigidBodyProps = {
   linearDamping: 2,
 };
 
-function Band({ maxSpeed = 50, minSpeed = 10 }) {
+function createCardGeometry({ w, h }: CardLayout) {
+  const radius = SURFACE.cornerRadiusPx / PX_PER_UNIT;
+  return {
+    body: createBodyGeometry(w, h, radius, 0.02),
+    face: createFaceGeometry(w, h, radius),
+    normalMap: createSurfaceNormalMap(),
+  };
+}
+
+type CardFaceState = NonNullable<ReturnType<typeof useCardFace>>;
+
+type BandProps = {
+  maxSpeed?: number;
+  minSpeed?: number;
+  front: CardFaceState | null;
+  back: CardFaceState | null;
+  strap: THREE.CanvasTexture | null;
+  cardGeometry: ReturnType<typeof createCardGeometry>;
+  layout: CardLayout;
+};
+
+// Everything heavy (textures, geometry) lives in Lanyard so Band can be
+// remounted cheaply to replay the "thrown" entrance.
+function Band({
+  maxSpeed = 50,
+  minSpeed = 10,
+  front,
+  back,
+  strap,
+  cardGeometry,
+  layout,
+}: BandProps) {
+  const { w: CARD_W, h: CARD_H } = layout;
   const band = useRef<THREE.Mesh>(null);
   const [ribbon] = useState(createRibbonGeometry);
   const fixed = useRef<Segment>(null!);
@@ -232,17 +267,6 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
   const frontMesh = useRef<THREE.Mesh>(null);
   const backMesh = useRef<THREE.Mesh>(null);
 
-  const [cardGeometry] = useState(() => {
-    const radius = SURFACE.cornerRadiusPx / PX_PER_UNIT;
-    return {
-      body: createBodyGeometry(CARD_W, CARD_H, radius, 0.02),
-      face: createFaceGeometry(CARD_W, CARD_H, radius),
-      normalMap: createSurfaceNormalMap(),
-    };
-  });
-  const front = useCardFace(createFrontFace);
-  const back = useCardFace(createBackFace);
-  const strap = useCanvasTexture(drawStrap, true);
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], SEGMENT]);
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], SEGMENT]);
@@ -507,19 +531,53 @@ function ShadowLight() {
   );
 }
 
-export default function Lanyard() {
+/**
+ * `playKey` changes every time the badge scrolls into view: the physics scene
+ * is rebuilt, so the card is thrown from its start pose again. While the badge
+ * is off-screen (`active` false) rendering is paused.
+ */
+export default function Lanyard({
+  playKey,
+  active,
+  portrait,
+}: {
+  playKey: number;
+  active: boolean;
+  portrait: boolean;
+}) {
+  const layout = useMemo(() => getCardLayout(portrait), [portrait]);
+  const cardGeometry = useMemo(() => createCardGeometry(layout), [layout]);
+  useEffect(
+    () => () => {
+      cardGeometry.body.dispose();
+      cardGeometry.face.dispose();
+      cardGeometry.normalMap.dispose();
+    },
+    [cardGeometry],
+  );
+  const front = useCardFace(createFrontFace, layout);
+  const back = useCardFace(createBackFace, layout);
+  const strap = useCanvasTexture(drawStrap, true);
+
   return (
     <Canvas
       camera={{ fov: FOV }}
       gl={{ alpha: true }}
       dpr={[1, 2]}
       shadows="variance"
+      frameloop={active ? "always" : "demand"}
     >
       <PixelCamera />
       <ambientLight intensity={0.3} />
       <ShadowLight />
-      <Physics gravity={[0, -40, 0]} timeStep={1 / 60} interpolate>
-        <Band />
+      <Physics key={`${playKey}-${portrait}`} gravity={[0, -40, 0]} timeStep={1 / 60} interpolate>
+        <Band
+          front={front}
+          back={back}
+          strap={strap}
+          cardGeometry={cardGeometry}
+          layout={layout}
+        />
       </Physics>
       <Environment blur={0.75} environmentIntensity={SURFACE.reflections}>
         <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
