@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { linkClasses } from "@/lib/styles";
 
 export function CopyEmailLink({ email }: { email: string }) {
   const [copied, setCopied] = useState(false);
@@ -19,7 +20,7 @@ export function CopyEmailLink({ email }: { email: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="cursor-pointer font-medium text-teal-700 underline decoration-dotted underline-offset-2"
+      className={linkClasses}
     >
       {copied ? "Copied!" : "Copy Email"}
     </button>
