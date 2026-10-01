@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    // 90 is used by the profile photo; the default is 75.
+    qualities: [75, 90],
+  },
 };
 
 export default nextConfig;

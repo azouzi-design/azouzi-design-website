@@ -77,7 +77,7 @@ export function CallToAction() {
           </button>
         </motion.span>
         <motion.span
-          className="pointer-events-none font-semibold text-gray-700 [grid-area:1/1]"
+          className="pointer-events-none text-center font-semibold text-gray-700 [grid-area:1/1]"
           variants={swapVariants(reduced, 6)}
           initial={false}
           animate={copied ? "shown" : "hidden"}
@@ -89,9 +89,21 @@ export function CallToAction() {
           {copied ? "Copied to clipboard" : ""}
         </span>
       </p>
-      <span className="flex h-4 items-center whitespace-nowrap rounded-[2px] bg-gray-700 px-1 text-[12px] leading-none font-medium tracking-[-0.06px] text-background-100">
-        1/2 spots left
-      </span>
+      <motion.span
+        className="flex h-4 items-center whitespace-nowrap rounded-[2px] bg-gray-700 px-1 text-[12px] leading-none font-medium tracking-[-0.06px] text-background-100"
+        // A quick playful shake on hover (skipped with reduced motion).
+        whileHover={
+          reduced
+            ? undefined
+            : {
+                x: [0, -2, 2, -1.5, 1.5, 0],
+                rotate: [0, -3, 3, -2, 2, 0],
+                transition: { duration: 0.5, ease: "easeInOut" },
+              }
+        }
+      >
+        1/2 Spots left
+      </motion.span>
     </div>
   );
 }

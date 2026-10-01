@@ -8,7 +8,10 @@
   --ds-gray-700: #8f8f8f; /* links, badges */
   --ds-gray-1000: #171717; /* body text */
   --selection-background: #121212; /* text selection, same as the badge card */
+  --focus-ring-color: #c4c4c4; /* lighter than the link grey */
   --focus-ring-radius: 8px;
+  /* Project card hover shade (also where the open transition starts). */
+  --card-hover: color-mix(in srgb, var(--ds-background-200), var(--ds-gray-1000) 4%);
 }
 
 @theme inline {
@@ -33,9 +36,9 @@ body {
   color: var(--ds-background-100);
 }
 
-/* Keyboard focus ring: the link grey instead of the browser blue. */
+/* Keyboard focus ring: a light grey instead of the browser blue. */
 :focus-visible {
-  outline: 2px solid var(--ds-gray-700);
+  outline: 2px solid var(--focus-ring-color);
   outline-offset: 3px;
 }
 
@@ -43,4 +46,142 @@ body {
    give them a rounded one. */
 :where(a, button):focus-visible {
   border-radius: var(--focus-ring-radius);
+}
+
+/* Page-load intro: <main> starts as a 32px circle at its top center and grows
+   to the full card. Clip-path (not width/height) so the content never reflows.
+   Timing is mirrored by INTRO_DELAY in soft-blur-in.tsx, which holds the
+   content back until the card has opened. */
+@keyframes main-reveal {
+  from {
+    clip-path: inset(0 calc(50% - 16px) calc(100% - 32px) calc(50% - 16px) round 16px);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 24px);
+  }
+}
+
+.main-reveal {
+  animation: main-reveal 1.1s cubic-bezier(0.76, 0, 0.24, 1) 0.25s backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-reveal {
+    animation: none;
+  }
+}
+
+/* Project transitions: the home page card travels to the top of its project
+   page (and back), inverting as it goes: light grey with a colored logo on
+   the home page, the logo's color with a white logo on the project page.
+   Everything here runs on one 650ms timeline so color and motion stay in sync.
+   - The card's group only moves; its image-pair paints the background, which
+     animates between grey and the project's --brand (set per project by
+     ProjectCard). Snapshots are hidden so the corners stay true while it
+     resizes.
+   - The logo moves on its own, unstretched. The old logo fades out while the
+     background is still mostly its old color, the new one fades in once it is
+     mostly the new color, so the two never overlap mid-change.
+   - Direction comes from the side being shown: card-open (project header) or
+     card-close (home card), so browser back/forward work too.
+   Everything else crossfades with the page. */
+::view-transition-group(.card-morph),
+::view-transition-group(.logo-morph) {
+  animation-duration: 650ms;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+::view-transition-group(.card-morph) {
+  border-radius: 24px;
+  overflow: clip;
+}
+
+::view-transition-image-pair(.card-morph) {
+  background: var(--ds-background-200);
+  /* Longhands: the build drops a shorthand that has no animation name. */
+  animation-duration: 650ms;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+  animation-fill-mode: both;
+}
+
+::view-transition-image-pair(.card-open) {
+  animation-name: card-open;
+}
+
+::view-transition-image-pair(.card-close) {
+  animation-name: card-close;
+}
+
+::view-transition-old(.card-morph),
+::view-transition-new(.card-morph) {
+  display: none;
+}
+
+/* Opens from the hovered shade, since the card was just clicked. */
+@keyframes card-open {
+  from {
+    background-color: var(--card-hover);
+  }
+  to {
+    background-color: var(--brand);
+  }
+}
+
+@keyframes card-close {
+  from {
+    background-color: var(--brand);
+  }
+  to {
+    background-color: var(--ds-background-200);
+  }
+}
+
+::view-transition-old(.logo-morph) {
+  animation: 650ms linear both logo-out;
+}
+
+::view-transition-new(.logo-morph) {
+  animation: 650ms linear both logo-in;
+}
+
+@keyframes logo-out {
+  0% {
+    opacity: 1;
+  }
+  40%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes logo-in {
+  0%,
+  60% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+::view-transition-old(root) {
+  animation-duration: 250ms;
+}
+
+::view-transition-new(root) {
+  animation-duration: 350ms;
+}
+
+/* Let clicks through to the live page while a transition runs. */
+::view-transition {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }

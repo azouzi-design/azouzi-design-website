@@ -50,8 +50,13 @@ export function Badge() {
   }, []);
 
   return (
-    <div ref={ref} style={{ height: getCardLayout(portrait).areaHeightPx }}>
+    <section
+      id="business-card"
+      aria-label="Business card"
+      ref={ref}
+      style={{ height: getCardLayout(portrait).areaHeightPx }}
+    >
       <Lanyard playKey={playKey} active={active} portrait={portrait} />
-    </div>
+    </section>
   );
 }
