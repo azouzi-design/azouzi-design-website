@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { isLowPower } from "@/lib/low-power";
 import { PORTRAIT_MAX_WIDTH, getCardLayout } from "./lanyard-layout";
 
 // WebGL + Rapier (WASM) are browser-only.
@@ -10,12 +9,6 @@ const Lanyard = dynamic(() => import("./lanyard"), { ssr: false });
 
 // The throw starts once this much of the badge area's top is on screen.
 const TRIGGER_PX = 200;
-// Building the 3D scene (three.js, physics WASM, textures, shaders) is heavy
-// work that would compete with the page-load animations, so it waits until
-// they've played (ms since the page started loading), or until the badge is
-// within a screen of scrolling into view, whichever comes first.
-const INTRO_END_MS = 4000;
-const PRELOAD_MARGIN = "100%";
 
 const NARROW_QUERY = `(max-width: ${PORTRAIT_MAX_WIDTH}px)`;
 
@@ -37,26 +30,6 @@ export function Badge() {
   const [active, setActive] = useState(false);
   const [playKey, setPlayKey] = useState(0);
   const portrait = useNarrowScreen();
-  // null until the scene may be built; then whether to build its lighter version.
-  const [lowPower, setLowPower] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const build = () => setLowPower((current) => current ?? isLowPower());
-    const timer = setTimeout(build, INTRO_END_MS - performance.now());
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) build();
-      },
-      { rootMargin: `0px 0px ${PRELOAD_MARGIN} 0px` },
-    );
-    observer.observe(element);
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
-  }, []);
 
   // Replay the entrance every time the badge scrolls into view.
   useEffect(() => {
@@ -83,14 +56,7 @@ export function Badge() {
       ref={ref}
       style={{ height: getCardLayout(portrait).areaHeightPx }}
     >
-      {lowPower !== null && (
-        <Lanyard
-          playKey={playKey}
-          active={active}
-          portrait={portrait}
-          lowPower={lowPower}
-        />
-      )}
+      <Lanyard playKey={playKey} active={active} portrait={portrait} />
     </section>
   );
 }
