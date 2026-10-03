@@ -36,8 +36,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {isHome && (
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 -z-10 hidden w-full md:block">
           <span className="absolute inset-y-0 left-[calc(25%-160px)] w-px bg-gray-1000/[0.032]" />
-          <span className="absolute inset-y-0 left-[calc(50%-320px)] w-px bg-gray-1000/[0.032]" />
-          <span className="absolute inset-y-0 left-1/2 w-px bg-gray-1000/[0.032]" />
+          <span className="absolute inset-y-0 left-[calc(50%-326px)] w-px bg-gray-1000/[0.032]" />
+          <span className="absolute inset-y-0 left-[calc(50%-6px)] w-px bg-gray-1000/[0.032]" />
           <span className="absolute inset-y-0 left-[calc(50%+320px)] w-px bg-gray-1000/[0.032]" />
           <span className="absolute inset-y-0 left-[calc(75%+160px)] w-px bg-gray-1000/[0.032]" />
         </div>
