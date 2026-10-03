@@ -24,7 +24,9 @@ import {
 import {
   createBackFace,
   createFrontFace,
+  fontFamily,
   hotspotAt,
+  loadFont,
   type CardFace,
   type Hotspot,
 } from "./card-faces";
@@ -43,13 +45,10 @@ const INK = "#171717";
 
 type Segment = RapierRigidBody & { lerped?: THREE.Vector3 };
 
-function getFontFamily() {
-  return getComputedStyle(document.body).fontFamily;
-}
-
 async function drawStrap(): Promise<HTMLCanvasElement> {
-  const font = `600 ${STRAP_TEXTURE_H * 0.42}px ${getFontFamily()}`;
-  await document.fonts.load(font);
+  const size = STRAP_TEXTURE_H * 0.42;
+  const font = `600 ${size}px ${fontFamily()}`;
+  await loadFont(600, size);
   const measure = document.createElement("canvas").getContext("2d")!;
   measure.font = font;
   const gap = STRAP_TEXTURE_H * 0.9;
@@ -150,7 +149,7 @@ function useCanvasTexture(
       created.anisotropy = 8;
       if (repeat) created.wrapS = created.wrapT = THREE.RepeatWrapping;
       setTexture(created);
-    });
+    }, console.error);
     return () => {
       cancelled = true;
       created?.dispose();
@@ -176,7 +175,7 @@ function useCardFace(
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.anisotropy = 8;
       setState({ face, texture });
-    });
+    }, console.error);
     return () => {
       cancelled = true;
       texture?.dispose();

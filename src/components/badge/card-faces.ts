@@ -78,8 +78,22 @@ function loadImage(src: string) {
   return image.decode().then(() => image);
 }
 
-function fontFamily() {
+export function fontFamily() {
   return getComputedStyle(document.body).fontFamily;
+}
+
+/**
+ * Waits for the page font before drawing with it. Only the primary family is
+ * loaded: the font stack also lists next/font's "Geist Fallback", which is
+ * `local(Arial)` and fails on Android (no Arial), and a single failed face
+ * rejects the whole `fonts.load`. Never rejects; worst case the canvas
+ * draws with a system font.
+ */
+export function loadFont(weight: number, size: number) {
+  const primary = fontFamily().split(",")[0].trim();
+  return document.fonts
+    .load(`${weight} ${size}px ${primary}`)
+    .catch(() => undefined);
 }
 
 function setFont(
@@ -136,12 +150,7 @@ export type CardFace = {
 
 export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
   const { pxW: FACE_W, pxH: FACE_H } = layout;
-  const family = fontFamily();
-  await Promise.all([
-    document.fonts.load(`400 14px ${family}`),
-    document.fonts.load(`500 14px ${family}`),
-    document.fonts.load(`500 10px ${family}`),
-  ]);
+  await Promise.all([loadFont(400, 14), loadFont(500, 14), loadFont(500, 10)]);
   const decorator = await loadImage("/images/card-front-decorator.svg");
   const { canvas, ctx } = createCanvas(layout);
 
@@ -238,8 +247,7 @@ export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
 
 export async function createBackFace(layout: CardLayout): Promise<CardFace> {
   const { pxW: FACE_W, pxH: FACE_H } = layout;
-  const family = fontFamily();
-  await document.fonts.load(`400 14px ${family}`);
+  await loadFont(400, 14);
   const decorator = await loadImage("/images/card-back-decorator.svg");
   const { canvas, ctx } = createCanvas(layout);
   // The name graphic spans the card width, keeping its 404 × 38 proportions.
