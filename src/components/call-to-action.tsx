@@ -19,13 +19,13 @@ function swapVariants(reduced: boolean | null, offset: number): Variants {
   return {
     shown: {
       opacity: 1,
-      y: 0,
+      transform: "translateY(0px)",
       filter: "blur(0px)",
       transition: { duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] },
     },
     hidden: {
       opacity: 0,
-      y: offset,
+      transform: `translateY(${offset}px)`,
       filter: "blur(6px)",
       transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
     },

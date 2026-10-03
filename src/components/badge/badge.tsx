@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { isLowPower } from "@/lib/low-power";
 import { PORTRAIT_MAX_WIDTH, getCardLayout } from "./lanyard-layout";
 
 // WebGL + Rapier (WASM) are browser-only.
@@ -9,6 +10,12 @@ const Lanyard = dynamic(() => import("./lanyard"), { ssr: false });
 
 // The throw starts once this much of the badge area's top is on screen.
 const TRIGGER_PX = 200;
+// Building the 3D scene (three.js, physics WASM, textures, shader compiles)
+// is heavy work that would compete with the page-load animations, so it waits
+// until they've played (ms since the page started loading) and the browser is
+// idle. It only starts sooner if the badge gets this close to the screen.
+const INTRO_END_MS = 4000;
+const PRELOAD_MARGIN_PX = 300;
 
 const NARROW_QUERY = `(max-width: ${PORTRAIT_MAX_WIDTH}px)`;
 
@@ -30,6 +37,33 @@ export function Badge() {
   const [active, setActive] = useState(false);
   const [playKey, setPlayKey] = useState(0);
   const portrait = useNarrowScreen();
+  // null until the scene may be built; then whether to build its lighter version.
+  const [lowPower, setLowPower] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const build = () => setLowPower((current) => current ?? isLowPower());
+    let idle = 0;
+    const timer = setTimeout(() => {
+      // Not in older Safari: there, build right after the intro.
+      if ("requestIdleCallback" in window) {
+        idle = requestIdleCallback(build, { timeout: 1000 });
+      } else build();
+    }, INTRO_END_MS - performance.now());
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) build();
+      },
+      { rootMargin: `0px 0px ${PRELOAD_MARGIN_PX}px 0px` },
+    );
+    observer.observe(element);
+    return () => {
+      clearTimeout(timer);
+      if (idle) cancelIdleCallback(idle);
+      observer.disconnect();
+    };
+  }, []);
 
   // Replay the entrance every time the badge scrolls into view.
   useEffect(() => {
@@ -56,7 +90,14 @@ export function Badge() {
       ref={ref}
       style={{ height: getCardLayout(portrait).areaHeightPx }}
     >
-      <Lanyard playKey={playKey} active={active} portrait={portrait} />
+      {lowPower !== null && (
+        <Lanyard
+          playKey={playKey}
+          active={active}
+          portrait={portrait}
+          lowPower={lowPower}
+        />
+      )}
     </section>
   );
 }

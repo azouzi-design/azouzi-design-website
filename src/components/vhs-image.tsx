@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // VHS tape effect from https://canvasui.dev/docs/components/vhs, adapted to a
 // plain image texture (the original needs Chrome's HTML-in-canvas API).
@@ -208,11 +208,27 @@ export function VhsImage({
   options?: Partial<VhsOptions>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Creating the WebGL context and compiling the shader is costly, and it
+  // used to run during the page-load animations. Wait for the first hover
+  // instead: most visitors (and every phone that isn't tapped) never pay for it.
+  const [armed, setArmed] = useState(false);
+  const armedByMouse = useRef(false);
+
+  useEffect(() => {
+    const host = canvasRef.current?.parentElement;
+    if (!host || armed) return;
+    const arm = (event: PointerEvent) => {
+      armedByMouse.current = event.pointerType !== "touch";
+      setArmed(true);
+    };
+    host.addEventListener("pointerenter", arm, { once: true });
+    return () => host.removeEventListener("pointerenter", arm);
+  }, [armed]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const host = canvas?.parentElement;
-    if (!canvas || !host) return;
+    if (!armed || !canvas || !host) return;
 
     const config = { ...OPTIONS, ...options };
     const gl = canvas.getContext("webgl2", {
@@ -311,6 +327,8 @@ export function VhsImage({
     image.onload = () => {
       loaded = true;
       textureDirty = true;
+      // Hovered before the photo arrived: hide the plain image now.
+      if (target === 1) host.dataset.vhs = "on";
     };
     image.src = src;
 
@@ -384,6 +402,9 @@ export function VhsImage({
     host.addEventListener("pointerenter", on);
     host.addEventListener("pointerleave", off);
     host.addEventListener("pointercancel", off);
+    // The hover that armed the effect has already happened. (Not for touch:
+    // :hover sticks after a tap, and no pointerleave would end the effect.)
+    if (armedByMouse.current && host.matches(":hover")) on();
 
     return () => {
       cancelAnimationFrame(raf);
@@ -397,7 +418,7 @@ export function VhsImage({
       gl.deleteShader(fragmentShader);
       gl.deleteBuffer(quad);
     };
-  }, [src, fit, maxOpacity, options]);
+  }, [armed, src, fit, maxOpacity, options]);
 
   return (
     <canvas

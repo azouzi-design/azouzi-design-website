@@ -6,6 +6,9 @@ import type { ReactNode } from "react";
 // "soft-blur-in": content rises a few px, fades in and sharpens from a soft blur.
 const EASE = [0.22, 1, 0.36, 1] as const;
 const DURATION = 1.2;
+// Moved with `transform` rather than Framer's `y`: transform runs on the
+// compositor, `y` is recalculated on the main thread every frame.
+const RISE = "translateY(8px)";
 export const STAGGER = 0.1;
 // Pause before a text block starts playing, every time it comes into view.
 export const TEXT_DELAY = 0.8;
@@ -71,10 +74,10 @@ function blurVariants(
     };
   }
   return {
-    hidden: { opacity: 0, y: 8, filter: "blur(8px)" },
+    hidden: { opacity: 0, transform: RISE, filter: "blur(8px)" },
     visible: () => ({
       opacity: 1,
-      y: 0,
+      transform: "translateY(0px)",
       filter: "blur(0px)",
       transition: {
         duration: DURATION,
