@@ -17,7 +17,6 @@ import {
 import {
   CLIP,
   PX_PER_UNIT,
-  SEGMENT,
   getCardLayout,
   type CardLayout,
 } from "./lanyard-layout";
@@ -232,7 +231,7 @@ function Band({
   cardGeometry,
   layout,
 }: BandProps) {
-  const { w: CARD_W, h: CARD_H } = layout;
+  const { w: CARD_W, h: CARD_H, segment: SEGMENT } = layout;
   // How far right of the anchor the card is thrown in from. Narrower on
   // phones, where the desktop throw starts and swings off-screen.
   const spread = layout.portrait ? 0.4 : 1;

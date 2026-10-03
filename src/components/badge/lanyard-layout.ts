@@ -3,8 +3,10 @@
 // Fixed screen scale so sizes are exact in CSS pixels.
 export const PX_PER_UNIT = 190;
 
-// Strap: three rope segments (total strap length = 3 × SEGMENT).
-export const SEGMENT = 0.5;
+// Strap: three rope segments (total strap length = 3 × segment).
+const SEGMENT = 0.5;
+/** Phones get a 40% shorter strap. */
+const PORTRAIT_SEGMENT = SEGMENT * 0.6;
 export const CLIP = 0.3; // card top -> strap attachment
 
 const BOTTOM_MARGIN_PX = 200;
@@ -22,6 +24,8 @@ export type CardLayout = {
   /** Card size in on-screen px. */
   pxW: number;
   pxH: number;
+  /** Length of one of the strap's three rope segments, in world units. */
+  segment: number;
   /** Card size in world units. */
   w: number;
   h: number;
@@ -33,14 +37,16 @@ export function getCardLayout(portrait: boolean): CardLayout {
   const pxW = portrait ? PORTRAIT_W : LANDSCAPE_W;
   const pxH = portrait ? PORTRAIT_H : Math.round(pxW / 1.75);
   const h = pxH / PX_PER_UNIT;
+  const segment = portrait ? PORTRAIT_SEGMENT : SEGMENT;
   return {
     portrait,
+    segment,
     pxW,
     pxH,
     w: pxW / PX_PER_UNIT,
     h,
     areaHeightPx: Math.round(
-      (3 * SEGMENT + CLIP + h) * PX_PER_UNIT + BOTTOM_MARGIN_PX,
+      (3 * segment + CLIP + h) * PX_PER_UNIT + BOTTOM_MARGIN_PX,
     ),
   };
 }
