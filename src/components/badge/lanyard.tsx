@@ -559,11 +559,15 @@ export default function Lanyard({
   playKey,
   active,
   portrait,
+  lowPower,
 }: {
   playKey: number;
   active: boolean;
   portrait: boolean;
+  /** Slow device (see lib/low-power): use the same lighter settings as phones. */
+  lowPower: boolean;
 }) {
+  const lite = portrait || lowPower;
   const layout = useMemo(() => getCardLayout(portrait), [portrait]);
   const cardGeometry = useMemo(() => createCardGeometry(layout), [layout]);
   useEffect(
@@ -582,14 +586,14 @@ export default function Lanyard({
     <Canvas
       camera={{ fov: FOV }}
       gl={{ alpha: true }}
-      // Phones: cap resolution so the GPU keeps up with the swing.
-      dpr={portrait ? [1, 1.5] : [1, 2]}
+      // Phones and slow devices: cap resolution so the GPU keeps up with the swing.
+      dpr={lite ? [1, 1.5] : [1, 2]}
       shadows="variance"
       frameloop={active ? "always" : "demand"}
     >
       <PixelCamera />
       <ambientLight intensity={0.3} />
-      <ShadowLight lite={portrait} />
+      <ShadowLight lite={lite} />
       <Physics key={`${playKey}-${portrait}`} gravity={[0, -40, 0]} timeStep={1 / 60} interpolate>
         <Band
           front={front}
