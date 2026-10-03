@@ -233,6 +233,9 @@ function Band({
   layout,
 }: BandProps) {
   const { w: CARD_W, h: CARD_H } = layout;
+  // How far right of the anchor the card is thrown in from. Narrower on
+  // phones, where the desktop throw starts and swings off-screen.
+  const spread = layout.portrait ? 0.4 : 1;
   const band = useRef<THREE.Mesh>(null);
   const [ribbon] = useState(createRibbonGeometry);
   const fixed = useRef<Segment>(null!);
@@ -266,6 +269,23 @@ function Band({
   const frontMesh = useRef<THREE.Mesh>(null);
   const backMesh = useRef<THREE.Mesh>(null);
 
+  // A touch that turns into a page scroll ends with `pointercancel`, not
+  // `pointerup`, often outside the card. Without this the card stays grabbed
+  // and jumps to wherever the finger moves next.
+  useEffect(() => {
+    if (!dragged) return;
+    const release = () => {
+      setDragged(false);
+      setPressed(null);
+      pointerDown.current = null;
+    };
+    window.addEventListener("pointercancel", release);
+    window.addEventListener("pointerup", release);
+    return () => {
+      window.removeEventListener("pointercancel", release);
+      window.removeEventListener("pointerup", release);
+    };
+  }, [dragged]);
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], SEGMENT]);
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], SEGMENT]);
@@ -335,9 +355,10 @@ function Band({
         0.1,
         Math.min(1, body.lerped.distanceTo(body.translation())),
       );
+      // Capped at 1: on slow frames (phones) it would overshoot and whip.
       body.lerped.lerp(
         body.translation(),
-        delta * (minSpeed + distance * (maxSpeed - minSpeed)),
+        Math.min(1, delta * (minSpeed + distance * (maxSpeed - minSpeed))),
       );
     });
     // Top (anchor) to bottom (card), so the text reads downwards.
@@ -364,17 +385,17 @@ function Band({
     <>
       <group>
         <RigidBody ref={fixed} {...segmentProps} type="fixed" />
-        <RigidBody position={[SEGMENT * 0.7, 0, 0]} ref={j1} {...segmentProps}>
+        <RigidBody position={[SEGMENT * 0.7 * spread, 0, 0]} ref={j1} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
-        <RigidBody position={[SEGMENT * 1.4, 0, 0]} ref={j2} {...segmentProps}>
+        <RigidBody position={[SEGMENT * 1.4 * spread, 0, 0]} ref={j2} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
-        <RigidBody position={[SEGMENT * 2.1, 0, 0]} ref={j3} {...segmentProps}>
+        <RigidBody position={[SEGMENT * 2.1 * spread, 0, 0]} ref={j3} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
         <RigidBody
-          position={[SEGMENT * 2.8, 0, 0]}
+          position={[SEGMENT * 2.8 * spread, 0, 0]}
           ref={card}
           {...segmentProps}
           type={dragged ? "kinematicPosition" : "dynamic"}
@@ -497,7 +518,7 @@ function Band({
  * Light from the top-left front, casting a soft shadow of the card and strap
  * onto an invisible wall just behind them.
  */
-function ShadowLight() {
+function ShadowLight({ lite }: { lite: boolean }) {
   const [target] = useState(() => {
     const object = new THREE.Object3D();
     object.position.set(0, -2.4, 0);
@@ -511,9 +532,9 @@ function ShadowLight() {
         target={target}
         intensity={1}
         castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-radius={SURFACE.shadowSoftness}
-        shadow-blurSamples={16}
+        shadow-mapSize={lite ? [1024, 1024] : [2048, 2048]}
+        shadow-radius={lite ? SURFACE.shadowSoftness / 2 : SURFACE.shadowSoftness}
+        shadow-blurSamples={lite ? 8 : 16}
         shadow-bias={-0.0005}
         shadow-camera-left={-8}
         shadow-camera-right={8}
@@ -562,13 +583,14 @@ export default function Lanyard({
     <Canvas
       camera={{ fov: FOV }}
       gl={{ alpha: true }}
-      dpr={[1, 2]}
+      // Phones: cap resolution so the GPU keeps up with the swing.
+      dpr={portrait ? [1, 1.5] : [1, 2]}
       shadows="variance"
       frameloop={active ? "always" : "demand"}
     >
       <PixelCamera />
       <ambientLight intensity={0.3} />
-      <ShadowLight />
+      <ShadowLight lite={portrait} />
       <Physics key={`${playKey}-${portrait}`} gravity={[0, -40, 0]} timeStep={1 / 60} interpolate>
         <Band
           front={front}
