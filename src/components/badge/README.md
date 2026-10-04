@@ -62,7 +62,7 @@ Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194)
   | | Card (px) | Strap segment | Strap total | Throw spread |
   | --- | --- | --- | --- | --- |
   | Landscape (desktop/tablet) | 428 × 245 (3.5 × 2 in ratio) | 0.5 u | 285px | 1 |
-  | Portrait (phones) | 348 × 280 | 0.3 u (40% shorter) | 171px | 0.4 |
+  | Portrait (phones) | 348 × 232 | 0.3 u (40% shorter) | 171px | 0.4 |
 
 - Every size comes from `lanyard-layout.ts`. Changing `PORTRAIT_H`,
   `PORTRAIT_W` or the segment length automatically updates the canvas

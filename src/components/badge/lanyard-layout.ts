@@ -15,7 +15,7 @@ const BOTTOM_MARGIN_PX = 200;
 // narrow ones.
 const LANDSCAPE_W = 428;
 const PORTRAIT_W = 348;
-const PORTRAIT_H = 280;
+const PORTRAIT_H = 232;
 /** At or below this viewport width the portrait card is used. */
 export const PORTRAIT_MAX_WIDTH = 460;
 
