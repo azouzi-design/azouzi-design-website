@@ -187,20 +187,12 @@ type Side = "front" | "back";
 type SpotRef = { side: Side; id: string } | null;
 
 /**
- * Opens a card link in a new tab. Ad and pop-up blockers can stop tabs opened
- * by script from a click on a <canvas> (it looks like a pop-under ad); then
- * the link opens in this tab instead, so it always goes somewhere. Not
- * "noopener": with it, window.open always returns null and a blocked tab
- * can't be told apart, so the opener is cut by hand instead.
+ * Opens a link from a tap. Touch has no hover, so taps can't use the real <a>
+ * overlay that desktop clicks go through (see Band).
  */
 function openLink(href: string) {
-  if (href.startsWith("mailto:")) {
-    window.location.href = href;
-    return;
-  }
-  const tab = window.open(href, "_blank");
-  if (tab) tab.opener = null;
-  else window.location.href = href;
+  if (href.startsWith("mailto:")) window.location.href = href;
+  else window.open(href, "_blank", "noopener,noreferrer");
 }
 
 const segmentProps: RigidBodyProps = {
@@ -230,6 +222,8 @@ type BandProps = {
   strap: THREE.CanvasTexture | null;
   cardGeometry: ReturnType<typeof createCardGeometry>;
   layout: CardLayout;
+  /** Real <a> laid over the hovered link row (see useFrame). */
+  link: HTMLAnchorElement | null;
 };
 
 // Everything heavy (textures, geometry) lives in Lanyard so Band can be
@@ -242,6 +236,7 @@ function Band({
   strap,
   cardGeometry,
   layout,
+  link,
 }: BandProps) {
   const { w: CARD_W, h: CARD_H, segment: SEGMENT } = layout;
   // How far right of the anchor the card is thrown in from. Narrower on
@@ -259,6 +254,7 @@ function Band({
   const [ang] = useState(() => new THREE.Vector3());
   const [rot] = useState(() => new THREE.Vector3());
   const [dir] = useState(() => new THREE.Vector3());
+  const [corner] = useState(() => new THREE.Vector3());
   const [curve] = useState(() => {
     const c = new THREE.CatmullRomCurve3([
       new THREE.Vector3(),
@@ -279,6 +275,52 @@ function Band({
   );
   const frontMesh = useRef<THREE.Mesh>(null);
   const backMesh = useRef<THREE.Mesh>(null);
+  // Last pointer type over the card: the link overlay is for mouse/pen only.
+  const pointerType = useRef("mouse");
+  // Set by onPointerOut, cleared by any later move over the card (R3F also
+  // fires "out" when the hit switches between the card's own meshes).
+  const pendingOut = useRef(false);
+  const spotRef = useRef<SpotRef>(null);
+  // A frame must render for the overlay to move, even when the card is
+  // still and R3F would otherwise skip frames.
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    spotRef.current = spot;
+    invalidate();
+  }, [spot, invalidate]);
+  // The overlay element, owned here so useFrame can position it.
+  const anchorRef = useRef<HTMLAnchorElement | null>(null);
+
+  // Ad and pop-up blockers stop tabs that script opens after a click on a
+  // <canvas> (the pop-under ad pattern), so on desktop a link must be a real
+  // <a> under the cursor. The overlay sits over the hovered row; its clicks
+  // are native link clicks. While it's hovered the canvas sees the pointer
+  // leave, so these handlers keep the card's hover state in its place.
+  useEffect(() => {
+    const anchor = link;
+    anchorRef.current = anchor;
+    if (!anchor) return;
+    const enter = () => {
+      pendingOut.current = false;
+    };
+    const leave = () => {
+      setHovered(false);
+      setSpot(null);
+      setPressed(null);
+    };
+    const down = () => setPressed(spotRef.current);
+    const up = () => setPressed(null);
+    anchor.addEventListener("pointerenter", enter);
+    anchor.addEventListener("pointerleave", leave);
+    anchor.addEventListener("pointerdown", down);
+    anchor.addEventListener("pointerup", up);
+    return () => {
+      anchor.removeEventListener("pointerenter", enter);
+      anchor.removeEventListener("pointerleave", leave);
+      anchor.removeEventListener("pointerdown", down);
+      anchor.removeEventListener("pointerup", up);
+    };
+  }, [link]);
 
   // A touch that turns into a page scroll ends with `pointercancel`, not
   // `pointerup`, often outside the card. Without this the card stays grabbed
@@ -390,6 +432,55 @@ function Band({
     ang.copy(card.current.angvel());
     rot.copy(card.current.rotation());
     card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z }, true);
+
+    // Lay the link overlay over the hovered row's on-screen bounds, every
+    // frame, so it follows the card as it swings.
+    const anchor = anchorRef.current;
+    if (!anchor) return;
+    const spot = spotRef.current;
+    const face = spot?.side === "front" ? front : spot?.side === "back" ? back : null;
+    const mesh = spot?.side === "front" ? frontMesh.current : backMesh.current;
+    const hotspot = face?.face.hotspots.find((h) => h.id === spot?.id);
+    if (!hotspot || !mesh || dragged || pointerType.current === "touch") {
+      anchor.style.display = "none";
+      return;
+    }
+    const { width, height } = state.size;
+    let left = Infinity;
+    let top = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    for (const [fx, fy] of [
+      [hotspot.x, hotspot.y],
+      [hotspot.x + hotspot.w, hotspot.y],
+      [hotspot.x, hotspot.y + hotspot.h],
+      [hotspot.x + hotspot.w, hotspot.y + hotspot.h],
+    ]) {
+      // Face px -> face mesh space (centred, y up) -> screen px.
+      corner
+        .set(
+          (fx / face!.face.width - 0.5) * CARD_W,
+          (0.5 - fy / face!.face.height) * CARD_H,
+          0,
+        )
+        .applyMatrix4(mesh.matrixWorld)
+        .project(state.camera);
+      const x = ((corner.x + 1) / 2) * width;
+      const y = ((1 - corner.y) / 2) * height;
+      left = Math.min(left, x);
+      top = Math.min(top, y);
+      right = Math.max(right, x);
+      bottom = Math.max(bottom, y);
+    }
+    anchor.style.display = "block";
+    anchor.style.transform = `translate(${left}px, ${top}px)`;
+    anchor.style.width = `${right - left}px`;
+    anchor.style.height = `${bottom - top}px`;
+    if (anchor.getAttribute("href") !== hotspot.href) {
+      anchor.href = hotspot.href;
+      anchor.target = hotspot.href.startsWith("mailto:") ? "" : "_blank";
+      anchor.setAttribute("aria-label", hotspot.label);
+    }
   });
 
   return (
@@ -415,11 +506,24 @@ function Band({
           <group
             onPointerOver={() => setHovered(true)}
             onPointerOut={() => {
-              setHovered(false);
-              setSpot(null);
+              // Moving onto the link overlay also leaves the canvas. Its
+              // pointerenter lands just after this, so check a frame later.
+              pendingOut.current = true;
+              requestAnimationFrame(() => {
+                if (
+                  !pendingOut.current ||
+                  anchorRef.current?.matches(":hover")
+                )
+                  return;
+                pendingOut.current = false;
+                setHovered(false);
+                setSpot(null);
+              });
             }}
             onPointerMove={(e) => {
               e.stopPropagation(); // only the nearest face counts
+              pendingOut.current = false;
+              pointerType.current = e.nativeEvent.pointerType;
               if (dragged) return;
               const hit = hitSpot(e);
               setSpot((current) =>
@@ -445,6 +549,7 @@ function Band({
             }}
             onPointerDown={(e) => {
               e.stopPropagation(); // only the nearest face counts
+              pointerType.current = e.nativeEvent.pointerType;
               (e.target as Element).setPointerCapture(e.pointerId);
               const hit = hitSpot(e);
               pointerDown.current = {
@@ -593,42 +698,62 @@ export default function Lanyard({
   const front = useCardFace(createFrontFace, layout);
   const back = useCardFace(createBackFace, layout);
   const strap = useCanvasTexture(drawStrap, true);
+  // State, not a ref: the scene mounts in R3F's own root, so Band must
+  // re-run its setup once the element exists.
+  const [link, setLink] = useState<HTMLAnchorElement | null>(null);
 
   return (
-    <Canvas
-      camera={{ fov: FOV }}
-      gl={{ alpha: true }}
-      // Phones and slow devices: cap resolution so the GPU keeps up with the swing.
-      dpr={lite ? [1, 1.5] : [1, 2]}
-      shadows="variance"
-      frameloop={active ? "always" : "demand"}
-    >
-      <PixelCamera />
-      <ambientLight intensity={0.3} />
-      <ShadowLight lite={lite} />
-      {/* Paused off-screen: while the card still swings, physics asks for a new
-          frame every step, which would keep the scene rendering unseen. */}
-      <Physics
-        key={`${playKey}-${portrait}`}
-        gravity={[0, -40, 0]}
-        timeStep={1 / 60}
-        interpolate
-        paused={!active}
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <Canvas
+        camera={{ fov: FOV }}
+        gl={{ alpha: true }}
+        // Phones and slow devices: cap resolution so the GPU keeps up with the swing.
+        dpr={lite ? [1, 1.5] : [1, 2]}
+        shadows="variance"
+        frameloop={active ? "always" : "demand"}
       >
-        <Band
-          front={front}
-          back={back}
-          strap={strap}
-          cardGeometry={cardGeometry}
-          layout={layout}
-        />
-      </Physics>
-      <Environment blur={0.75} environmentIntensity={SURFACE.reflections}>
-        <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-        <Lightformer intensity={3} color="white" position={[-1, -1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-        <Lightformer intensity={3} color="white" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-        <Lightformer intensity={10} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
-      </Environment>
-    </Canvas>
+        <PixelCamera />
+        <ambientLight intensity={0.3} />
+        <ShadowLight lite={lite} />
+        {/* Paused off-screen: while the card still swings, physics asks for a new
+            frame every step, which would keep the scene rendering unseen. */}
+        <Physics
+          key={`${playKey}-${portrait}`}
+          gravity={[0, -40, 0]}
+          timeStep={1 / 60}
+          interpolate
+          paused={!active}
+        >
+          <Band
+            front={front}
+            back={back}
+            strap={strap}
+            cardGeometry={cardGeometry}
+            layout={layout}
+            link={link}
+          />
+        </Physics>
+        <Environment blur={0.75} environmentIntensity={SURFACE.reflections}>
+          <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+          <Lightformer intensity={3} color="white" position={[-1, -1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+          <Lightformer intensity={3} color="white" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+          <Lightformer intensity={10} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
+        </Environment>
+      </Canvas>
+      {/* Hidden until a link row is hovered; positioned by Band. */}
+      <a
+        ref={setLink}
+        rel="noopener noreferrer"
+        tabIndex={-1}
+        draggable={false}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          display: "none",
+          cursor: "pointer",
+        }}
+      />
+    </div>
   );
 }

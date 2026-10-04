@@ -16,6 +16,8 @@ export type FaceState = { hover: string | null; pressed: string | null };
 export type Hotspot = {
   id: string;
   href: string;
+  /** Accessible name, e.g. "Email: hello@azouzi.design". */
+  label: string;
   x: number;
   y: number;
   w: number;
@@ -182,6 +184,7 @@ export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
   const hotspots: Hotspot[] = rows.map((row) => ({
     id: row.id,
     href: row.href,
+    label: `${row.label}: ${row.value}`,
     x: left - ROW_PAD_X,
     y: row.y - ROW_PAD_Y,
     w: contentW + ROW_PAD_X * 2,

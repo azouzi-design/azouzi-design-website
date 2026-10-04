@@ -154,11 +154,19 @@ rejects**. Don't change it back to `document.fonts.load(fullFontStack)`:
 - **Tap on a link:** opens only if the pointer moved **less than 6px**
   between down and up, so a drag that starts on a link doesn't open it.
   `mailto:` uses `location.href`; everything else opens in a new tab.
-  **If an ad or pop-up blocker stops the new tab** (some block any tab opened
-  by script after a click on a `<canvas>`, the pop-under ad pattern),
-  `window.open` returns null and the link opens in the same tab instead.
-  Keep `noopener` out of the `window.open` call: with it the call always
-  returns null, and every link would open in the same tab.
+- **Desktop link clicks go through a real `<a>`.** Ad blockers block tabs
+  that script opens after a click on a `<canvas>` (the pop-under ad pattern),
+  so on mouse/pen a transparent `<a href>` (rendered next to the canvas in
+  `Lanyard`) is laid over the hovered row's on-screen bounds every frame in
+  `Band`'s `useFrame`. The click is a native link click, which nothing
+  blocks. Rules that keep it working:
+  - `useFrame` reads the hover from `spotRef`, and a frame is requested
+    (`invalidate()`) whenever the hover changes, or the overlay won't move.
+  - The `<a>` is kept in state (callback ref): the scene mounts in R3F's own
+    root, so `Band` must re-run its setup once the element exists.
+  - Hovering the overlay makes the canvas see the pointer leave. The hover is
+    only cleared a frame later, and not if the `<a>` is `:hover`.
+  - Taps (touch has no hover) still use `window.open` from `pointerup`.
 - **Releasing on touch:** a touch that turns into a page scroll ends with
   `pointercancel`, often outside the card, not `pointerup`. While dragging,
   window-level `pointercancel`/`pointerup` listeners release the card.
