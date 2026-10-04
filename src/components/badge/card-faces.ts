@@ -11,7 +11,6 @@ const BG = "#121212";
 const WHITE = "#ffffff";
 const GRAY_600 = "#a8a8a8";
 
-export type FaceState = { hover: string | null; pressed: string | null };
 
 export type Hotspot = {
   id: string;
@@ -147,7 +146,7 @@ export type CardFace = {
   height: number;
   canvas: HTMLCanvasElement;
   hotspots: Hotspot[];
-  render: (state: FaceState) => void;
+  render: () => void;
 };
 
 export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
@@ -191,21 +190,15 @@ export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
     h: line.height + ROW_PAD_Y * 2,
   }));
 
-  function render({ hover, pressed }: FaceState) {
+  // Drawn once. The hover/press highlight is a separate mesh in the scene
+  // (see Band), so hovering never redraws or re-uploads this texture.
+  function render() {
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, FACE_W, FACE_H);
 
     ctx.drawImage(decorator, FACE_W - EDGE - 213, 16, 213, 20);
 
     for (const row of rows) {
-      const spot = hotspots.find((h) => h.id === row.id)!;
-      if (hover === row.id || pressed === row.id) {
-        ctx.fillStyle =
-          pressed === row.id ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.08)";
-        ctx.beginPath();
-        ctx.roundRect(spot.x, spot.y, spot.w, spot.h, 12);
-        ctx.fill();
-      }
       const baseline = row.y + line.ascent;
 
       setFont(ctx, 500, 14, -0.14);
@@ -236,15 +229,14 @@ export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
 
       setFont(ctx, 400, 14, -0.14);
       ctx.textAlign = "right";
-      const active = hover === row.id || pressed === row.id;
-      ctx.fillStyle = active ? WHITE : GRAY_600;
+      ctx.fillStyle = GRAY_600;
       ctx.fillText(row.value, right, baseline);
       const valueW = ctx.measureText(row.value).width;
       dottedUnderline(ctx, right - valueW, right, baseline + 2.5, 14);
     }
   }
 
-  render({ hover: null, pressed: null });
+  render();
   return { width: FACE_W, height: FACE_H, canvas, hotspots, render };
 }
 

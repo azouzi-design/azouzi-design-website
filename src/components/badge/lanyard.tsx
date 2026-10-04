@@ -37,6 +37,10 @@ import {
 } from "./card-surface";
 
 const STRAP_W = 0.23;
+// Shared, so material props don't change identity on every render.
+const RELIEF_SCALE = new THREE.Vector2(SURFACE.reliefStrength, SURFACE.reliefStrength);
+/** Corner radius of the row highlight, in face px (as in Figma). */
+const HIGHLIGHT_RADIUS_PX = 12;
 const STRAP_TEXTURE_H = 128;
 const FOV = 25;
 
@@ -356,20 +360,23 @@ function Band({
     };
   }, [hovered, dragged, spot]);
 
-  // Redraw a face when its hover/pressed row changes.
-  useEffect(() => {
-    for (const [side, card] of [
-      ["front", front],
-      ["back", back],
-    ] as const) {
-      if (!card) continue;
-      card.face.render({
-        hover: spot?.side === side ? spot.id : null,
-        pressed: pressed?.side === side ? pressed.id : null,
-      });
-      card.texture.needsUpdate = true;
-    }
-  }, [front, back, spot, pressed]);
+  // Row highlight: a small translucent shape over the hovered/pressed row.
+  // Moving it is free; redrawing the 3x-resolution face texture on every
+  // hover change (as before) stalled frames while the GPU re-uploaded it.
+  // All rows share one size, so one geometry serves every row.
+  const highlightGeometry = useMemo(() => {
+    const row = front?.face.hotspots[0];
+    if (!row) return null;
+    return createFaceGeometry(
+      row.w / PX_PER_UNIT,
+      row.h / PX_PER_UNIT,
+      HIGHLIGHT_RADIUS_PX / PX_PER_UNIT,
+    );
+  }, [front]);
+  useEffect(() => () => highlightGeometry?.dispose(), [highlightGeometry]);
+  const active = pressed ?? spot;
+  const activeFace = active?.side === "front" ? front : active?.side === "back" ? back : null;
+  const activeRow = activeFace?.face.hotspots.find((h) => h.id === active?.id);
 
   function hitSpot(e: { object: THREE.Object3D; uv?: THREE.Vector2 }) {
     const side: Side | null =
@@ -442,7 +449,7 @@ function Band({
     const mesh = spot?.side === "front" ? frontMesh.current : backMesh.current;
     const hotspot = face?.face.hotspots.find((h) => h.id === spot?.id);
     if (!hotspot || !mesh || dragged || pointerType.current === "touch") {
-      anchor.style.display = "none";
+      if (anchor.style.display !== "none") anchor.style.display = "none";
       return;
     }
     const { width, height } = state.size;
@@ -472,10 +479,14 @@ function Band({
       right = Math.max(right, x);
       bottom = Math.max(bottom, y);
     }
-    anchor.style.display = "block";
-    anchor.style.transform = `translate(${left}px, ${top}px)`;
-    anchor.style.width = `${right - left}px`;
-    anchor.style.height = `${bottom - top}px`;
+    // Whole px, and only on change: a style write makes the page re-lay out.
+    const transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+    const boxW = `${Math.round(right - left)}px`;
+    const boxH = `${Math.round(bottom - top)}px`;
+    if (anchor.style.display !== "block") anchor.style.display = "block";
+    if (anchor.style.transform !== transform) anchor.style.transform = transform;
+    if (anchor.style.width !== boxW) anchor.style.width = boxW;
+    if (anchor.style.height !== boxH) anchor.style.height = boxH;
     if (anchor.getAttribute("href") !== hotspot.href) {
       anchor.href = hotspot.href;
       anchor.target = hotspot.href.startsWith("mailto:") ? "" : "_blank";
@@ -594,15 +605,38 @@ function Band({
                   emissive="#ffffff"
                   emissiveIntensity={SURFACE.artworkGlow}
                   normalMap={cardGeometry.normalMap}
-                  normalScale={
-                    new THREE.Vector2(SURFACE.reliefStrength, SURFACE.reliefStrength)
-                  }
+                  normalScale={RELIEF_SCALE}
                   roughness={SURFACE.roughness}
                   metalness={SURFACE.metalness}
                   clearcoat={SURFACE.clearcoat}
                   clearcoatRoughness={SURFACE.clearcoatRoughness}
                   toneMapped={false}
                 />
+                {highlightGeometry && (
+                  <mesh
+                    geometry={highlightGeometry}
+                    // Not hit-testable, or hovering it would hide it again.
+                    raycast={() => null}
+                    visible={!!activeRow && active?.side === side}
+                    position={
+                      activeRow && activeFace
+                        ? [
+                            ((activeRow.x + activeRow.w / 2) / activeFace.face.width - 0.5) * CARD_W,
+                            (0.5 - (activeRow.y + activeRow.h / 2) / activeFace.face.height) * CARD_H,
+                            0.0005,
+                          ]
+                        : [0, 0, 0.0005]
+                    }
+                  >
+                    <meshBasicMaterial
+                      color="#ffffff"
+                      transparent
+                      opacity={pressed ? 0.14 : 0.08}
+                      depthWrite={false}
+                      toneMapped={false}
+                    />
+                  </mesh>
+                )}
               </mesh>
             ))}
             {/* Metal clip */}

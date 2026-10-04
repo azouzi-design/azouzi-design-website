@@ -127,9 +127,14 @@ Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194)
   along the bottom.
 - **Contact data lives in `contactBlocks` in `card-faces.ts`.** It must match
   the site's contact details (and the `azouzi-design-context` skill).
-- **Hover/press redraws the canvas:** `render({hover, pressed})` re-runs and
-  sets `texture.needsUpdate`. Tap areas are rectangles in face px, matched
-  against the raycast UV (`hotspotAt`).
+- **Faces are drawn once; hover never touches the texture.** The row
+  highlight is a small translucent mesh (8% white, 14% when pressed) that
+  `Band` moves over the active row. **Don't go back to redrawing the face on
+  hover:** re-uploading the 3x-resolution texture (and its mipmaps) on every
+  hover change stalled frames, which showed as lag in the card's moving
+  light. The highlight mesh has `raycast={() => null}`; if it were
+  hit-testable, hovering it would hide it again. Tap areas are rectangles
+  in face px, matched against the raycast UV (`hotspotAt`).
 
 ### Font loading (the Android blank-card bug)
 
