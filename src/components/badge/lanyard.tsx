@@ -186,9 +186,21 @@ function useCardFace(
 type Side = "front" | "back";
 type SpotRef = { side: Side; id: string } | null;
 
+/**
+ * Opens a card link in a new tab. Ad and pop-up blockers can stop tabs opened
+ * by script from a click on a <canvas> (it looks like a pop-under ad); then
+ * the link opens in this tab instead, so it always goes somewhere. Not
+ * "noopener": with it, window.open always returns null and a blocked tab
+ * can't be told apart, so the opener is cut by hand instead.
+ */
 function openLink(href: string) {
-  if (href.startsWith("mailto:")) window.location.href = href;
-  else window.open(href, "_blank", "noopener,noreferrer");
+  if (href.startsWith("mailto:")) {
+    window.location.href = href;
+    return;
+  }
+  const tab = window.open(href, "_blank");
+  if (tab) tab.opener = null;
+  else window.location.href = href;
 }
 
 const segmentProps: RigidBodyProps = {

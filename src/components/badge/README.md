@@ -154,6 +154,11 @@ rejects**. Don't change it back to `document.fonts.load(fullFontStack)`:
 - **Tap on a link:** opens only if the pointer moved **less than 6px**
   between down and up, so a drag that starts on a link doesn't open it.
   `mailto:` uses `location.href`; everything else opens in a new tab.
+  **If an ad or pop-up blocker stops the new tab** (some block any tab opened
+  by script after a click on a `<canvas>`, the pop-under ad pattern),
+  `window.open` returns null and the link opens in the same tab instead.
+  Keep `noopener` out of the `window.open` call: with it the call always
+  returns null, and every link would open in the same tab.
 - **Releasing on touch:** a touch that turns into a page scroll ends with
   `pointercancel`, often outside the card, not `pointerup`. While dragging,
   window-level `pointercancel`/`pointerup` listeners release the card.
