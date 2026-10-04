@@ -227,12 +227,26 @@ every visit.
   `#business-card`. The iframe's `matchMedia` picks portrait. Resizing the
   window with browser automation hasn't worked reliably.
 - A tab in the **background doesn't animate**: requestAnimationFrame is
-  paused, so the canvas looks empty. Bring the tab to the front before
-  judging a screenshot.
+  paused, so the canvas looks empty. IntersectionObserver is paused too, so
+  the entrance and the `active` state never trigger. Bring the tab to the
+  front before judging a screenshot.
+- **Test card links on production, in a desktop browser with an ad blocker
+  on.** Ad blockers usually skip `localhost`, and mobile Chrome has no
+  extensions, so the blocked-link bug was invisible in both places.
+- **Don't replace `window.open` with a logger to "test" links.** It hides
+  exactly the failure that matters (a blocked tab). Check that a real tab
+  opens.
+- **Synthetic pointer events don't drive the card.** Events created with
+  `dispatchEvent` didn't trigger its click handling. Use real clicks.
+- **The card keeps swinging for about a minute after the entrance.** Don't
+  wait for it to settle in automated tests: use short hover-then-click
+  sequences, timebox the testing, and leave the final check to a human.
 - To reproduce the Android font failure on desktop:
   `document.fonts.add(new FontFace("Geist Fallback", "local(NoSuchFont)"))`,
   then load the full body font stack. It rejects with `NetworkError`.
 - Checklist after a change: the front, back and strap all show up; the
   entrance replays when you scroll away and back; dragging and throwing work;
-  a link tap opens and a drag starting on a link doesn't; the card on phones
-  settles fully on screen; nothing lags while scrolling past.
+  a link tap opens and a drag starting on a link doesn't; a desktop link
+  click opens a new tab with an ad blocker on; moving off the card resets
+  the cursor and hides the link overlay; the card on phones settles fully on
+  screen; nothing lags while scrolling past.
