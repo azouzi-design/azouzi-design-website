@@ -29,6 +29,27 @@ function CardTransition({
   );
 }
 
+function LogoImage({ project }: { project: Project }) {
+  return (
+    <img
+      src={project.logo}
+      alt={project.alt}
+      width={project.width}
+      height={20}
+      className="block h-5 shrink-0"
+      style={
+        project.mask
+          ? {
+              maskImage: `url("${project.mask}")`,
+              maskSize: "100% 100%",
+              maskRepeat: "no-repeat",
+            }
+          : undefined
+      }
+    />
+  );
+}
+
 function Logo({ project, open }: { project: Project; open: boolean }) {
   return (
     <ViewTransition
@@ -36,33 +57,18 @@ function Logo({ project, open }: { project: Project; open: boolean }) {
       share={`logo-morph ${open ? "" : "morph-close"}`}
       default="none"
     >
-      <img
-        src={project.logo}
-        alt={project.alt}
-        width={project.width}
-        height={20}
-        className="block h-5 shrink-0"
-        style={
-          project.mask
-            ? {
-                maskImage: `url("${project.mask}")`,
-                maskSize: "100% 100%",
-                maskRepeat: "no-repeat",
-              }
-            : undefined
-        }
-      />
+      <LogoImage project={project} />
     </ViewTransition>
   );
 }
 
 const cardBase =
-  "flex w-full items-center justify-center overflow-clip rounded-[24px] px-5";
+  "flex w-full items-center justify-center overflow-clip rounded-(--card-radius) px-5";
 const cardClasses = `${cardBase} h-[180px] bg-background-200 py-5 sm:h-[200px]`;
 // The project page header is shorter than the home card, with the logo
-// centered between its two buttons.
+// centered between its two buttons. A pill at every size, like its buttons.
 const headerClasses =
-  "grid h-12 w-full grid-cols-[1fr_auto_1fr] items-center overflow-clip rounded-[24px] bg-background-200 px-1";
+  "grid h-12 w-full grid-cols-[1fr_auto_1fr] items-center overflow-clip rounded-full bg-background-200 px-1";
 // The buttons arrive once the card has settled and blur out as it leaves
 // (see "header-actions" in globals.css). Below sm their labels shorten to one word.
 const actionClasses = `${pillClasses} header-actions`;
@@ -86,37 +92,55 @@ export function ProjectCardLink({ project }: { project: Project }) {
   );
 }
 
-/** Project page header: the same card, now at the top, with a way home and
- * on to the next project. */
-export function ProjectCardHeader({ project }: { project: Project }) {
+/**
+ * The project page bar: a way home, the logo, and on to the next project.
+ * The header at the top morphs from the home card; the copy floating at the
+ * end of the page (ProjectEndBar) takes no part in transitions, so its names
+ * don't clash with the header's.
+ */
+export function ProjectBar({
+  project,
+  inHeader = false,
+}: {
+  project: Project;
+  inHeader?: boolean;
+}) {
   const index = projects.findIndex(({ id }) => id === project.id);
   const next = projects[(index + 1) % projects.length];
+  const actions = inHeader ? actionClasses : pillClasses;
 
   return (
+    <div className={headerClasses}>
+      <Link
+        href="/"
+        aria-label="Return home"
+        className={`${actions} justify-self-start`}
+        style={inHeader ? { viewTransitionName: "header-home" } : undefined}
+      >
+        <img src="/icons/arrow-redo-down-forward.svg" alt="" width={18} height={18} />
+        <span className="max-sm:hidden">Return Home</span>
+        <span className="sm:hidden">Home</span>
+      </Link>
+      {inHeader ? <Logo project={project} open /> : <LogoImage project={project} />}
+      <Link
+        href={`/projects/${next.id}`}
+        aria-label={`Next project: ${next.alt}`}
+        className={`${actions} justify-self-end`}
+        style={inHeader ? { viewTransitionName: "header-next" } : undefined}
+      >
+        <span className="max-sm:hidden">Next / {next.alt}</span>
+        <span className="sm:hidden">Next</span>
+        <img src="/icons/arrow-right.svg" alt="" width={18} height={18} />
+      </Link>
+    </div>
+  );
+}
+
+/** Project page header: the same card, now at the top. */
+export function ProjectCardHeader({ project }: { project: Project }) {
+  return (
     <CardTransition project={project} open>
-      <div className={headerClasses}>
-        <Link
-          href="/"
-          aria-label="Return home"
-          className={`${actionClasses} justify-self-start`}
-          style={{ viewTransitionName: "header-home" }}
-        >
-          <img src="/icons/arrow-redo-down-forward.svg" alt="" width={18} height={18} />
-          <span className="max-sm:hidden">Return Home</span>
-          <span className="sm:hidden">Home</span>
-        </Link>
-        <Logo project={project} open />
-        <Link
-          href={`/projects/${next.id}`}
-          aria-label={`Next project: ${next.alt}`}
-          className={`${actionClasses} justify-self-end`}
-          style={{ viewTransitionName: "header-next" }}
-        >
-          <span className="max-sm:hidden">Next / {next.alt}</span>
-          <span className="sm:hidden">Next</span>
-          <img src="/icons/arrow-right.svg" alt="" width={18} height={18} />
-        </Link>
-      </div>
+      <ProjectBar project={project} inHeader />
     </CardTransition>
   );
 }

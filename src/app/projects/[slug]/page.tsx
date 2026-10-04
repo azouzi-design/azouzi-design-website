@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProjectCardHeader } from "@/components/project-card";
 import {
@@ -6,9 +7,15 @@ import {
   SoftBlurIn,
   SoftBlurItem,
   SoftBlurView,
-  TEXT_DELAY,
 } from "@/components/soft-blur-in";
-import { getProject, projects } from "@/lib/projects";
+import {
+  getProject,
+  getSections,
+  projects,
+  type Kpi,
+  type Project,
+  type ProjectImage,
+} from "@/lib/projects";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -21,22 +28,122 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: project ? `${project.alt} — Ahmed Azouzi` : undefined };
 }
 
-// Two image blocks until the real case-study images exist.
-const imageBlocks = [0, 1];
+// Seconds between the text and the first image starting: the same gap as the
+// home page's text and photo (SEQUENCE.photo), so the image arrives once the
+// paragraphs have mostly settled.
+const IMAGE_DELAY = 1.0;
+// Seconds between KPIs playing in turn: the same step as the home page's
+// project cards (SEQUENCE.cardStep).
+const KPI_STEP = 0.12;
+
+/**
+ * A run of images, full column width. `first` is the run right under the
+ * paragraphs: it waits IMAGE_DELAY after them (the paragraphs all start
+ * together, since each SoftBlurItem's own delay wins over its parent's),
+ * whether arriving, loading or scrolling back up. Every other image plays as
+ * soon as it scrolls into view.
+ */
+function ImageRun({
+  project,
+  images,
+  first,
+  numberFrom,
+}: {
+  project: Project;
+  images: (ProjectImage | null)[];
+  first: boolean;
+  /** Placeholder numbering for screen readers, counted across the page. */
+  numberFrom: number;
+}) {
+  return (
+    <div className="flex w-full max-w-[920px] flex-col gap-10">
+      {images.map((image, i) => {
+        const offset = (first ? IMAGE_DELAY : 0) + i * STAGGER;
+        return (
+          <SoftBlurView
+            key={i}
+            delay={offset}
+            replayDelay={first && i === 0 ? offset : 0}
+            navOffset={offset}
+            // An image sets its own height; a placeholder keeps a fixed one.
+            className={`w-full overflow-clip rounded-(--card-radius) ${image ? "" : "h-[300px] bg-background-200 sm:h-[524px]"}`}
+          >
+            {image ? (
+              <Image
+                src={image.src}
+                alt={image.alt}
+                width={image.width}
+                height={image.height}
+                // Full width of the 920px column, less on smaller screens.
+                sizes="(min-width: 944px) 920px, 100vw"
+                quality={90}
+                // The first image loads with the page, so it is ready when
+                // its blur-in starts instead of popping in after it.
+                preload={first && i === 0}
+                className="block h-auto w-full"
+              />
+            ) : (
+              <span className="sr-only">{`${project.alt} image ${numberFrom + i}`}</span>
+            )}
+          </SoftBlurView>
+        );
+      })}
+    </div>
+  );
+}
+
+/** KPIs — left edge on the page center, like the services block on the home
+ * page. They play one after the other, like the home page's project cards;
+ * if already on screen when the page opens, they follow the first image. */
+function KpiBlock({ kpis }: { kpis: Kpi[] }) {
+  return (
+    <section className="w-full max-w-[320px] md:translate-x-1/2">
+      <div className="flex flex-col gap-16">
+        {kpis.map(({ value, label }, i) => (
+          <SoftBlurView
+            key={value}
+            delay={IMAGE_DELAY + (i + 1) * KPI_STEP}
+            navOffset={IMAGE_DELAY + (i + 1) * KPI_STEP}
+            replayDelay={i * KPI_STEP}
+            className="flex flex-col gap-3"
+          >
+            <p className="text-[17px] font-semibold tracking-[-0.34px] sm:text-[20px] sm:tracking-[-0.4px]">
+              {value}
+            </p>
+            <p>{label}</p>
+          </SoftBlurView>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default async function ProjectPage({ params }: Props) {
   const project = getProject((await params).slug);
   if (!project) notFound();
 
+  const sections = getSections(project);
+  // Where each image run starts in the page-wide placeholder numbering.
+  const numberFrom = sections.map(
+    (_, i) =>
+      1 +
+      sections
+        .slice(0, i)
+        .reduce((n, s) => n + ("images" in s ? s.images.length : 0), 0),
+  );
+
   return (
-    <div className="flex flex-col items-center gap-20 pt-2 pb-[120px]">
+    // At 980px and below the header sits 12px under the card's top edge (just
+    // the card's own padding), matching the space at its sides.
+    <div className="flex flex-col items-center gap-20 pb-[120px] min-[981px]:pt-2">
       {/* The home page card, moved to the top */}
       <div className="w-full max-w-[920px]">
         <ProjectCardHeader project={project} />
       </div>
 
-      {/* Same horizontal position as the intro block on the home page */}
-      <section className="w-[320px] md:-translate-x-1/2">
+      {/* Same horizontal position as the intro block on the home page. Narrows
+          to fit on small phones, like the home blocks do. */}
+      <section className="w-full max-w-[320px] md:-translate-x-1/2">
         <SoftBlurIn className="flex flex-col gap-3">
           {project.paragraphs.map((paragraph) => (
             <SoftBlurItem key={paragraph}>
@@ -46,24 +153,19 @@ export default async function ProjectPage({ params }: Props) {
         </SoftBlurIn>
       </section>
 
-      <div className="flex w-full max-w-[920px] flex-col gap-10">
-        {imageBlocks.map((i) => {
-          // Same timing as the home text blocks: wait TEXT_DELAY, then play
-          // in order, so the images follow on from the paragraphs.
-          const delay = TEXT_DELAY + (project.paragraphs.length + i) * STAGGER;
-          return (
-            <SoftBlurView
-              key={i}
-              delay={delay}
-              replayDelay={delay}
-              navOffset={(project.paragraphs.length + i) * STAGGER}
-              className="h-[300px] w-full rounded-[24px] bg-background-200 sm:h-[524px]"
-            >
-              <span className="sr-only">{`${project.alt} image ${i + 1}`}</span>
-            </SoftBlurView>
-          );
-        })}
-      </div>
+      {sections.map((section, i) =>
+        "kpis" in section ? (
+          <KpiBlock key={i} kpis={section.kpis} />
+        ) : (
+          <ImageRun
+            key={i}
+            project={project}
+            images={section.images}
+            first={i === 0}
+            numberFrom={numberFrom[i]}
+          />
+        ),
+      )}
     </div>
   );
 }

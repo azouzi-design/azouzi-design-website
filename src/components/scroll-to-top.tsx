@@ -1,28 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { pillClasses } from "@/lib/styles";
-
-// How close to the bottom (px) counts as the end of the page.
-const END_THRESHOLD = 8;
+import { useAtPageEnd } from "@/lib/use-at-page-end";
 
 /** Home page: once scrolled to the end, a button in the corner goes back up. */
 export function ScrollToTop() {
-  const [atEnd, setAtEnd] = useState(false);
-
-  useEffect(() => {
-    function update() {
-      const { scrollHeight } = document.documentElement;
-      setAtEnd(window.scrollY + window.innerHeight >= scrollHeight - END_THRESHOLD);
-    }
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, []);
+  const atEnd = useAtPageEnd();
 
   function scrollToTop() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

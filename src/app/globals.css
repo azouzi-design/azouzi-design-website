@@ -12,6 +12,15 @@
   --focus-ring-radius: 8px;
   /* Project card hover shade (also where the open transition starts). */
   --card-hover: color-mix(in srgb, var(--ds-background-200), var(--ds-gray-1000) 4%);
+  /* Corner radius of the main card, project cards, header and images:
+     20px on phones, 24px from sm (640px) up. */
+  --card-radius: 20px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --card-radius: 24px;
+  }
 }
 
 @theme inline {
@@ -28,6 +37,20 @@ body {
   background: var(--ds-background-200);
   color: var(--ds-gray-1000);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Paragraphs and headings spread their words evenly across lines, so no line
+   ends up with a word on its own. In a base layer so a utility can override it. */
+@layer base {
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
 }
 
 /* Text selection: dark highlight instead of the browser blue. */
@@ -57,7 +80,7 @@ body {
     clip-path: inset(0 calc(50% - 16px) calc(100% - 32px) calc(50% - 16px) round 16px);
   }
   to {
-    clip-path: inset(0 0 0 0 round 24px);
+    clip-path: inset(0 0 0 0 round var(--card-radius));
   }
 }
 
@@ -94,7 +117,7 @@ body {
 }
 
 ::view-transition-group(.card-morph) {
-  border-radius: 24px;
+  border-radius: var(--card-radius);
   overflow: clip;
 }
 
