@@ -228,6 +228,8 @@ type BandProps = {
   layout: CardLayout;
   /** Real <a> laid over the hovered link row (see useFrame). */
   link: HTMLAnchorElement | null;
+  /** TEMP perf test (?badge=basic): no clearcoat. */
+  basic: boolean;
 };
 
 // Everything heavy (textures, geometry) lives in Lanyard so Band can be
@@ -241,6 +243,7 @@ function Band({
   cardGeometry,
   layout,
   link,
+  basic,
 }: BandProps) {
   const { w: CARD_W, h: CARD_H, segment: SEGMENT } = layout;
   // How far right of the anchor the card is thrown in from. Narrower on
@@ -579,7 +582,7 @@ function Band({
             <mesh geometry={cardGeometry.body} castShadow>
               <meshPhysicalMaterial
                 color="#121212"
-                clearcoat={SURFACE.clearcoat}
+                clearcoat={basic ? 0 : SURFACE.clearcoat}
                 clearcoatRoughness={SURFACE.clearcoatRoughness}
                 roughness={SURFACE.roughness}
               />
@@ -608,7 +611,7 @@ function Band({
                   normalScale={RELIEF_SCALE}
                   roughness={SURFACE.roughness}
                   metalness={SURFACE.metalness}
-                  clearcoat={SURFACE.clearcoat}
+                  clearcoat={basic ? 0 : SURFACE.clearcoat}
                   clearcoatRoughness={SURFACE.clearcoatRoughness}
                   toneMapped={false}
                 />
@@ -719,6 +722,11 @@ export default function Lanyard({
   lowPower: boolean;
 }) {
   const lite = portrait || lowPower;
+  // TEMP perf test: ?badge=lowres,noshadow,basic (any combination). Remove
+  // once the lag's cause is known.
+  const [test] = useState(
+    () => new URLSearchParams(window.location.search).get("badge")?.split(",") ?? [],
+  );
   const layout = useMemo(() => getCardLayout(portrait), [portrait]);
   const cardGeometry = useMemo(() => createCardGeometry(layout), [layout]);
   useEffect(
@@ -742,8 +750,8 @@ export default function Lanyard({
         camera={{ fov: FOV }}
         gl={{ alpha: true }}
         // Phones and slow devices: cap resolution so the GPU keeps up with the swing.
-        dpr={lite ? [1, 1.5] : [1, 2]}
-        shadows="variance"
+        dpr={test.includes("lowres") ? 1 : lite ? [1, 1.5] : [1, 2]}
+        shadows={test.includes("noshadow") ? false : "variance"}
         frameloop={active ? "always" : "demand"}
       >
         <PixelCamera />
@@ -764,6 +772,7 @@ export default function Lanyard({
             strap={strap}
             cardGeometry={cardGeometry}
             layout={layout}
+            basic={test.includes("basic")}
             link={link}
           />
         </Physics>
