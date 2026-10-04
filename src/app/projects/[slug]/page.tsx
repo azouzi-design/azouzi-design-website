@@ -35,8 +35,8 @@ export default async function ProjectPage({ params }: Props) {
         <ProjectCardHeader project={project} />
       </div>
 
-      {/* Same horizontal position as the services block on the home page */}
-      <section className="w-[320px] md:translate-x-1/2">
+      {/* Same horizontal position as the intro block on the home page */}
+      <section className="w-[320px] md:-translate-x-1/2">
         <SoftBlurIn className="flex flex-col gap-3">
           {project.paragraphs.map((paragraph) => (
             <SoftBlurItem key={paragraph}>

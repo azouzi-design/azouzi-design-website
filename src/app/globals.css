@@ -72,23 +72,25 @@ body {
 }
 
 /* Project transitions: the home page card travels to the top of its project
-   page (and back), inverting as it goes: light grey with a colored logo on
-   the home page, the logo's color with a white logo on the project page.
-   Everything here runs on one 650ms timeline so color and motion stay in sync.
-   - The card's group only moves; its image-pair paints the background, which
-     animates between grey and the project's --brand (set per project by
-     ProjectCard). Snapshots are hidden so the corners stay true while it
-     resizes.
-   - The logo moves on its own, unstretched. The old logo fades out while the
-     background is still mostly its old color, the new one fades in once it is
-     mostly the new color, so the two never overlap mid-change.
+   page (and back), keeping its grey background and colored logo.
+   Everything here runs on one 650ms timeline so the card and logo move together.
+   - The card's group only moves; its image-pair paints the grey background.
+     Snapshots are hidden so the corners stay true while it resizes.
+   - The logo moves on its own, unstretched. Both sides show the same logo,
+     so only the new one is drawn.
    - Direction comes from the side being shown: card-open (project header) or
-     card-close (home card), so browser back/forward work too.
+     card-close (home card), so browser back/forward work too. Closing
+     (morph-close) starts moving on the first frame, but gently: about 12% of
+     the way by the time the header's buttons have blurred away (150ms).
    Everything else crossfades with the page. */
 ::view-transition-group(.card-morph),
 ::view-transition-group(.logo-morph) {
   animation-duration: 650ms;
   animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+::view-transition-group(.morph-close) {
+  animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1);
 }
 
 ::view-transition-group(.card-morph) {
@@ -98,18 +100,14 @@ body {
 
 ::view-transition-image-pair(.card-morph) {
   background: var(--ds-background-200);
-  /* Longhands: the build drops a shorthand that has no animation name. */
-  animation-duration: 650ms;
-  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
-  animation-fill-mode: both;
 }
 
 ::view-transition-image-pair(.card-open) {
+  /* Longhands: the build drops a shorthand that has no animation name. */
   animation-name: card-open;
-}
-
-::view-transition-image-pair(.card-close) {
-  animation-name: card-close;
+  animation-duration: 650ms;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+  animation-fill-mode: both;
 }
 
 ::view-transition-old(.card-morph),
@@ -117,19 +115,10 @@ body {
   display: none;
 }
 
-/* Opens from the hovered shade, since the card was just clicked. */
+/* Settles from the hovered shade, since the card was just clicked. */
 @keyframes card-open {
   from {
     background-color: var(--card-hover);
-  }
-  to {
-    background-color: var(--brand);
-  }
-}
-
-@keyframes card-close {
-  from {
-    background-color: var(--brand);
   }
   to {
     background-color: var(--ds-background-200);
@@ -137,30 +126,52 @@ body {
 }
 
 ::view-transition-old(.logo-morph) {
-  animation: 650ms linear both logo-out;
+  display: none;
 }
 
 ::view-transition-new(.logo-morph) {
-  animation: 650ms linear both logo-in;
+  animation: none;
 }
 
-@keyframes logo-out {
-  0% {
-    opacity: 1;
-  }
-  40%,
-  100% {
+/* The header's buttons aren't drawn while the card travels (its snapshots are
+   hidden), so they blur in once it lands instead of popping in. Same entrance
+   as the scroll-to-top button. */
+.header-actions {
+  animation: header-actions-in 300ms ease-out 650ms backwards;
+  view-transition-class: header-action;
+}
+
+/* Each button is its own transition group (named in ProjectCardHeader), so it
+   isn't hidden with the card: leaving the page, it reverses its entrance while
+   the card is already on its way. Arriving, the button is still transparent
+   (its entrance waits for the card), so nothing extra is drawn. */
+::view-transition-old(.header-action) {
+  animation: header-actions-out 150ms ease-out both;
+}
+
+::view-transition-new(.header-action) {
+  animation: none;
+}
+
+@keyframes header-actions-out {
+  to {
     opacity: 0;
+    translate: 0 8px;
+    filter: blur(4px);
   }
 }
 
-@keyframes logo-in {
-  0%,
-  60% {
+@keyframes header-actions-in {
+  from {
     opacity: 0;
+    translate: 0 8px;
+    filter: blur(4px);
   }
-  100% {
-    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-actions {
+    animation: none;
   }
 }
 

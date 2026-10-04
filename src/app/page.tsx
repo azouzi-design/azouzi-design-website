@@ -114,11 +114,11 @@ export default function Home() {
         <div className="flex w-full justify-center sm:flex-1 sm:items-center">
           <section className="w-[320px] md:-translate-x-1/2">
             <SoftBlurIn className="flex flex-col gap-3">
-              <Lines lines={["Senior Product Designer", "(+5 years designing for Startups)"]} />
+              <Lines lines={["Senior Product Designer", "(+5 years designing for startups)"]} />
               <SoftBlurItem>
                 <p>
-                  Design Partner for AI founders, focused on agentic and
-                  vertical AI
+                  Design Partner for AI Founders, focused on Agentic AI and
+                  Vertical AI
                 </p>
               </SoftBlurItem>
               <SoftBlurItem>
@@ -129,7 +129,7 @@ export default function Home() {
                 </p>
               </SoftBlurItem>
               <Lines
-                lines={["Prev. Computer Science graduate and junior", "full-stack developer"]}
+                lines={["Prev. computer science graduate and junior", "full-stack developer"]}
               />
               <SoftBlurItem>
                 <p>

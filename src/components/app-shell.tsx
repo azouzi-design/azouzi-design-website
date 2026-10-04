@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Badge } from "@/components/badge/badge";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import { markAppHydrated, markNavigation } from "@/components/soft-blur-in";
 
 /**
@@ -47,6 +48,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Hanging badge below the card, home page only */}
       {isHome && <Badge />}
+      {isHome && <ScrollToTop />}
     </div>
   );
 }
