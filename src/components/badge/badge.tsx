@@ -88,6 +88,10 @@ export function Badge() {
       id="business-card"
       aria-label="Business card"
       ref={ref}
+      // Full-bleed: cancels the app shell's side padding (px-3 md:px-4) so the
+      // canvas reaches the screen edges. Otherwise the card's shadow, which
+      // falls to the right, is cut off in a hard line before the edge.
+      className="-mx-3 md:-mx-4"
       style={{ height: getCardLayout(portrait).areaHeightPx }}
     >
       {lowPower !== null && (

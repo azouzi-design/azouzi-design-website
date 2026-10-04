@@ -23,6 +23,12 @@ come from bugs that have already shipped once.
 It's mounted once, in `src/components/app-shell.tsx`, **on the home page only**
 (`isHome && <Badge />`), below the main white card.
 
+The section is **full-bleed**: `-mx-3 md:-mx-4` cancels the app shell's side
+padding, so the transparent canvas spans the whole screen width. If the canvas
+stops short of the screen edge, the card's shadow (which falls to the right)
+is cut off in a hard vertical line that looks like a white strip on phones.
+If the shell's padding changes, change these margins to match.
+
 Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194).
 
 ## Lifecycle
