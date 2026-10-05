@@ -7,6 +7,7 @@ import { ProjectEndBar } from "@/components/project-end-bar";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { getProject } from "@/lib/projects";
 import { markAppHydrated, markNavigation } from "@/components/soft-blur-in";
+import { playPress } from "@/lib/sounds";
 
 /**
  * The page frame, shared by every route so the white card persists while
@@ -20,6 +21,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     ? getProject(pathname.split("/")[2])
     : undefined;
   useEffect(markAppHydrated, []);
+
+  // "Click" for any click, "Tap" when it came from a touch.
+  useEffect(() => {
+    let pointerType = "mouse";
+    const remember = (event: PointerEvent) => {
+      pointerType = event.pointerType;
+    };
+    const press = () => {
+      playPress(pointerType === "touch" ? "tap" : "click");
+      pointerType = "mouse"; // a keyboard click has no pointer of its own
+    };
+    document.addEventListener("pointerdown", remember, true);
+    document.addEventListener("click", press, true);
+    return () => {
+      document.removeEventListener("pointerdown", remember, true);
+      document.removeEventListener("click", press, true);
+    };
+  }, []);
 
   // Every route change after the first render is a client-side navigation.
   const previousPath = useRef(pathname);

@@ -69,7 +69,7 @@ export default function Home() {
           {/* Desktop: sits between the two "A" letters of the decorator.
               Mobile: 72px, 12px under the decorator, 4px from the right edge. */}
           <div className="absolute top-[calc(100%+12px)] right-1 flex size-[73.25px] items-center md:size-[81.384px] justify-center md:top-[-20px] md:right-auto md:left-[57.245%] md:-translate-x-1/2">
-            <SoftBlurView delay={SEQUENCE.photo}>
+            <SoftBlurView delay={SEQUENCE.photo} sound>
               <div className="relative size-[72px] -rotate-1 md:size-20">
                 {/* Bottom corners lift slightly off the page */}
                 <span
@@ -113,7 +113,7 @@ export default function Home() {
         {/* Intro — right edge aligned to the page center */}
         <div className="flex w-full justify-center sm:flex-1 sm:items-center">
           <section className="w-[320px] md:-translate-x-1/2">
-            <SoftBlurIn className="flex flex-col gap-3">
+            <SoftBlurIn className="flex flex-col gap-3" sound>
               <Lines lines={["Senior Product Designer", "(+5 years designing for startups)"]} />
               <SoftBlurItem>
                 <p>
@@ -158,6 +158,7 @@ export default function Home() {
               navOffset={i * SEQUENCE.cardStep}
               replayDelayMinWidth={640}
               skipOnNavigation
+              sound
               className="min-w-0 shrink-0 sm:flex-1"
             >
               <ProjectCardLink project={project} />

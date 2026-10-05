@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
+import { playSend } from "@/lib/sounds";
 
 // "soft-blur-in": content rises a few px, fades in and sharpens from a soft blur.
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -37,6 +38,30 @@ let navigatedAt: number | null = null;
 /** Called on every client-side route change. */
 export function markNavigation() {
   navigatedAt = performance.now();
+  // Sounds still waiting for a page that has just been left.
+  pendingSounds.forEach(clearTimeout);
+  pendingSounds.clear();
+}
+
+/** Seconds before content plays during the page-load sequence. */
+function loadDelay(delay = 0) {
+  return delay + INTRO_DELAY;
+}
+
+const pendingSounds = new Set<ReturnType<typeof setTimeout>>();
+
+/**
+ * The "Send" sound for something that blurs in during the page-load sequence,
+ * timed to land as it appears. Later replays (scrolling back, navigating) are
+ * silent.
+ */
+function soundOnLoad(delay: number) {
+  if (phase() !== "load") return;
+  const timer = setTimeout(() => {
+    pendingSounds.delete(timer);
+    playSend();
+  }, loadDelay(delay) * 1000);
+  pendingSounds.add(timer);
 }
 
 /** Which timing applies to content that is about to play. */
@@ -85,7 +110,7 @@ function blurVariants(
         delay: (() => {
           switch (phase()) {
             case "load":
-              return delay + INTRO_DELAY;
+              return loadDelay(delay);
             case "navigation":
               return NAV_DELAY + navOffset;
             default:
@@ -101,9 +126,14 @@ function blurVariants(
 export function SoftBlurIn({
   children,
   className,
+  sound,
 }: {
   children: ReactNode;
   className?: string;
+  /** Play "Send" as its text appears during the page-load sequence. The items
+   * all start together (each one's own delay wins over the group's), so it is
+   * one sound for the block. */
+  sound?: boolean;
 }) {
   const reduced = useReducedMotion();
   return (
@@ -111,6 +141,7 @@ export function SoftBlurIn({
       className={className}
       initial="hidden"
       whileInView="visible"
+      onViewportEnter={sound ? () => soundOnLoad(0) : undefined}
       viewport={{ amount: 0.3 }}
       variants={{
         hidden: {},
@@ -151,6 +182,7 @@ export function SoftBlurView({
   id,
   skipOnNavigation,
   once = false,
+  sound,
   ...timing
 }: {
   children: ReactNode;
@@ -161,6 +193,8 @@ export function SoftBlurView({
   skipOnNavigation?: boolean;
   /** Play the first time it scrolls into view, then stay visible. */
   once?: boolean;
+  /** Play "Send" as it appears during the page-load sequence. */
+  sound?: boolean;
 } & Timing) {
   const reduced = useReducedMotion();
   return (
@@ -169,6 +203,7 @@ export function SoftBlurView({
       className={className}
       initial={skipOnNavigation && appHydrated ? false : "hidden"}
       whileInView="visible"
+      onViewportEnter={sound ? () => soundOnLoad(timing.delay ?? 0) : undefined}
       viewport={{ amount: 0.3, once }}
       variants={blurVariants(reduced, timing)}
     >
