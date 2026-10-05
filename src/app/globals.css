@@ -7,19 +7,24 @@
   --ds-gray-600: #a8a8a8; /* secondary text on dark */
   --ds-gray-700: #8f8f8f; /* links, badges */
   --ds-gray-1000: #171717; /* body text */
+  --ds-stroke: #ebebeb; /* outline on project images that need one */
   --selection-background: #121212; /* text selection, same as the badge card */
   --focus-ring-color: #c4c4c4; /* lighter than the link grey */
   --focus-ring-radius: 8px;
   /* Project card hover shade (also where the open transition starts). */
   --card-hover: color-mix(in srgb, var(--ds-background-200), var(--ds-gray-1000) 4%);
-  /* Corner radius of the main card, project cards, header and images:
+  /* Corner radius of the main card and project cards:
      20px on phones, 24px from sm (640px) up. */
   --card-radius: 20px;
+  /* Corner radius of project images and videos: 12px on phones, 16px from sm
+     (640px) up. */
+  --media-radius: 12px;
 }
 
 @media (min-width: 640px) {
   :root {
     --card-radius: 24px;
+    --media-radius: 16px;
   }
 }
 
@@ -31,6 +36,7 @@
   --color-gray-600: var(--ds-gray-600);
   --color-gray-700: var(--ds-gray-700);
   --color-gray-1000: var(--ds-gray-1000);
+  --color-stroke: var(--ds-stroke);
 }
 
 body {

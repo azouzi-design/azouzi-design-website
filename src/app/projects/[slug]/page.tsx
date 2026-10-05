@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProjectCardHeader } from "@/components/project-card";
+import { ProjectVideo } from "@/components/project-video";
 import {
   STAGGER,
   SoftBlurIn,
@@ -65,10 +66,16 @@ function ImageRun({
             delay={offset}
             replayDelay={first && i === 0 ? offset : 0}
             navOffset={offset}
+            // Once shown, it stays: scrolling past doesn't hide it again.
+            once
             // An image sets its own height; a placeholder keeps a fixed one.
-            className={`w-full overflow-clip rounded-(--card-radius) ${image ? "" : "h-[300px] bg-background-200 sm:h-[524px]"}`}
+            // The stroke is an overlay, so it never changes the media's size.
+            // Stroked shots also get a very slight shadow.
+            className={`relative w-full overflow-clip rounded-(--media-radius) ${image ? "" : "h-[300px] bg-background-200 sm:h-[524px]"} ${image?.stroke ? "shadow-[0_1px_4px_rgba(23,23,23,0.03)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-stroke" : ""}`}
           >
-            {image ? (
+            {image?.video ? (
+              <ProjectVideo video={image} />
+            ) : image ? (
               <Image
                 src={image.src}
                 alt={image.alt}

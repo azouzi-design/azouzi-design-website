@@ -1,6 +1,6 @@
 // Grey dotted links are the clickable text elements across the site.
 export const linkClasses =
-  "cursor-pointer font-semibold text-gray-700 underline decoration-dotted decoration-[10%] underline-offset-2 transition-colors duration-150 hover:text-gray-1000 active:opacity-70";
+  "cursor-pointer font-semibold text-gray-700 underline decoration-dotted decoration-current/70 decoration-[10%] underline-offset-4 transition-colors duration-150 hover:text-gray-1000 active:opacity-70";
 
 // White pill buttons: scroll to top, and the project page header's links.
 export const pillClasses =

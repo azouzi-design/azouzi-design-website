@@ -150,6 +150,7 @@ export function SoftBlurView({
   className,
   id,
   skipOnNavigation,
+  once = false,
   ...timing
 }: {
   children: ReactNode;
@@ -158,6 +159,8 @@ export function SoftBlurView({
   /** Mount already visible after a client-side navigation, so a shared
    * element arriving from another page isn't hidden mid-transition. */
   skipOnNavigation?: boolean;
+  /** Play the first time it scrolls into view, then stay visible. */
+  once?: boolean;
 } & Timing) {
   const reduced = useReducedMotion();
   return (
@@ -166,7 +169,7 @@ export function SoftBlurView({
       className={className}
       initial={skipOnNavigation && appHydrated ? false : "hidden"}
       whileInView="visible"
-      viewport={{ amount: 0.3 }}
+      viewport={{ amount: 0.3, once }}
       variants={blurVariants(reduced, timing)}
     >
       {children}
