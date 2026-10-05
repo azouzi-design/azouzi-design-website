@@ -14,7 +14,7 @@ export type Project = {
   mask?: string;
   /** The logo's own color: the project page header uses it as its background. */
   brand: string;
-  /** Placeholder copy until the case studies are written. */
+  /** The intro text under the project bar, one entry per paragraph. */
   paragraphs: string[];
   /** What follows the paragraphs, top to bottom. Without any, two
    * placeholder blocks show. */
@@ -39,7 +39,9 @@ export const projects: Project[] = [
     alt: "Stint",
     width: 63.958,
     brand: "#262626",
-    paragraphs: ["Paragraph 1", "Paragraph 2"],
+    paragraphs: [
+      "Stint is a focus session manager I'm designing, building, and working toward launching. I've tried a lot of task managers, and none of them matched how I actually work, so I made one that does. I'm handling all of it myself: the design, the code, the product decisions, and eventually the launch.",
+    ],
   },
   {
     id: "cynoia",
@@ -126,7 +128,9 @@ export const projects: Project[] = [
     alt: "Misc.",
     width: 58.115,
     brand: "#171717",
-    paragraphs: ["Paragraph 1", "Paragraph 2"],
+    paragraphs: [
+      "Bits and pieces from projects I've worked on over the past few years. Not everything gets a full case study, so I put the pieces I still like here, mostly client work for early-stage startups.",
+    ],
   },
 ];
 

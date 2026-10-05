@@ -134,8 +134,10 @@ export default async function ProjectPage({ params }: Props) {
 
   return (
     // At 980px and below the header sits 12px under the card's top edge (just
-    // the card's own padding), matching the space at its sides.
-    <div className="flex flex-col items-center gap-20 pb-[120px] min-[981px]:pt-2">
+    // the card's own padding), matching the space at its sides. At the bottom,
+    // room for the floating end bar (48px, 12px or 20px off the card's edge)
+    // plus a 120px gap above it.
+    <div className="flex flex-col items-center gap-20 pb-[180px] min-[981px]:pt-2 min-[981px]:pb-[188px]">
       {/* The home page card, moved to the top */}
       <div className="w-full max-w-[920px]">
         <ProjectCardHeader project={project} />
