@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  // Temporary Vercel domain until azouzi.design is moved over to this site;
-  // it's what the preview image URLs resolve against.
-  metadataBase: new URL("https://azouzi-design-website.vercel.app"),
+  // The site's main address (azouzi.design redirects here); it's what the
+  // preview image URLs resolve against.
+  metadataBase: new URL("https://www.azouzi.design"),
   title: "Ahmed Azouzi — Design Partner",
   description:
     "Ahmed Azouzi is a solo design partner for early-stage AI startups.",
