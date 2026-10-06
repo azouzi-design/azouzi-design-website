@@ -9,6 +9,7 @@ import {
   SoftBlurItem,
   SoftBlurView,
 } from "@/components/soft-blur-in";
+import { OG_ALT, SEP, SITE_NAME, describe } from "@/lib/site";
 import {
   getProject,
   getSections,
@@ -26,7 +27,30 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const project = getProject((await params).slug);
-  return { title: project ? `${project.alt} — Ahmed Azouzi` : undefined };
+  if (!project) return {};
+  const description = describe(project.paragraphs[0]);
+  const url = `/projects/${project.id}`;
+  return {
+    title: project.alt,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      siteName: SITE_NAME,
+      url,
+      title: `${project.alt}${SEP}${SITE_NAME}`,
+      description,
+      images: [
+        { url: "/opengraph-image.png", width: 1200, height: 630, alt: OG_ALT },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.alt}${SEP}${SITE_NAME}`,
+      description,
+      images: [{ url: "/twitter-image.png", alt: OG_ALT }],
+    },
+  };
 }
 
 // Seconds between the text and the first image starting: the same gap as the
