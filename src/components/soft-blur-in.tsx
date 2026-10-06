@@ -87,6 +87,9 @@ type Timing = {
   replayDelay?: number;
   /** Apply `replayDelay` only at or above this viewport width (px). */
   replayDelayMinWidth?: number;
+  /** Never part of the page-load or navigation sequence: always plays with
+   * `replayDelay` as it scrolls in, however soon after the page opened. */
+  scrollOnly?: boolean;
 };
 
 function blurVariants(
@@ -96,6 +99,7 @@ function blurVariants(
     navOffset = 0,
     replayDelay = 0,
     replayDelayMinWidth = 0,
+    scrollOnly = false,
   }: Timing = {},
   /** A text item (SoftBlurItem): played line by line on phones. */
   text = false,
@@ -119,7 +123,7 @@ function blurVariants(
     },
     visible: () => {
       const start = (() => {
-        switch (phase()) {
+        switch (scrollOnly ? "replay" : phase()) {
           case "load":
             return loadDelay(delay);
           case "navigation":

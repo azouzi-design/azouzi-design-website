@@ -124,8 +124,9 @@ function ImageRun({
 }
 
 /** KPIs — left edge on the page center, like the services block on the home
- * page. They play one after the other, like the home page's project cards;
- * if already on screen when the page opens, they follow the first image. */
+ * page. They play one after the other, like the home page's project cards,
+ * when scrolled to: never as part of the page's opening sequence, so KPIs
+ * near the top (Thunders) don't wait for it. */
 function KpiBlock({ kpis }: { kpis: Kpi[] }) {
   return (
     <section className="w-full max-w-[320px] md:translate-x-1/2">
@@ -133,9 +134,8 @@ function KpiBlock({ kpis }: { kpis: Kpi[] }) {
         {kpis.map(({ value, label }, i) => (
           <SoftBlurView
             key={value}
-            delay={IMAGE_DELAY + (i + 1) * KPI_STEP}
-            navOffset={IMAGE_DELAY + (i + 1) * KPI_STEP}
             replayDelay={i * KPI_STEP}
+            scrollOnly
             className="flex flex-col gap-3"
           >
             <p className="text-[17px] font-semibold tracking-[-0.34px] sm:text-[20px] sm:tracking-[-0.4px]">
