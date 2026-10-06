@@ -7,13 +7,12 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-// The 404 drops the white card: the whole screen is the page grey, with the
-// decorator name along the bottom as on the home page. The negative margins
-// cancel the card's padding, the min-height fills the viewport inside the
-// page padding (12/16px each side).
+// Sits in the shared white card like every other page (no extra margin or
+// background); the min-height fills the viewport inside the page padding
+// (12/16px each side) and the card's top padding.
 export default function NotFound() {
   return (
-    <div className="-mx-3 -mt-3 flex min-h-[calc(100svh-24px)] flex-col bg-background-200 p-3 md:min-h-[calc(100svh-32px)]">
+    <div className="flex min-h-[calc(100svh-44px)] flex-col md:min-h-[calc(100svh-48px)]">
       <div className="flex">
         <Link href="/" className={pillClasses}>
           <img src="/icons/arrow-redo-down-forward.svg" alt="" width={18} height={18} />
