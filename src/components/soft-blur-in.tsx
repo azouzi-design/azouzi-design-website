@@ -3,14 +3,15 @@
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { useRef, type ReactNode } from "react";
 import {
+  isPhone,
   linesVisible,
-  phoneTrial,
   playLines,
-  softRiseVisible,
-} from "@/components/phone-motion-trial";
+  riseVisible,
+} from "@/components/phone-motion";
 import { playSend } from "@/lib/sounds";
 
 // "soft-blur-in": content rises a few px, fades in and sharpens from a soft blur.
+// Phones play a version without the blur (see phone-motion.ts).
 const EASE = [0.22, 1, 0.36, 1] as const;
 const DURATION = 1.2;
 // Moved with `transform` rather than Framer's `y`: transform runs on the
@@ -96,7 +97,7 @@ function blurVariants(
     replayDelay = 0,
     replayDelayMinWidth = 0,
   }: Timing = {},
-  /** A text item (SoftBlurItem), for the line-by-line phone trial. */
+  /** A text item (SoftBlurItem): played line by line on phones. */
   text = false,
 ): Variants {
   // Reduced motion: keep a plain fade, drop the movement and blur.
@@ -127,10 +128,7 @@ function blurVariants(
             return window.innerWidth >= replayDelayMinWidth ? replayDelay : 0;
         }
       })();
-      // TEMP: phone alternatives to the blur (see phone-motion-trial.ts).
-      const trial = phoneTrial();
-      if (trial === "c" && text) return linesVisible(start);
-      if (trial) return softRiseVisible(start);
+      if (isPhone()) return text ? linesVisible(start) : riseVisible(start);
       return {
         opacity: 1,
         transform: "translateY(0px)",
@@ -192,9 +190,9 @@ export function SoftBlurItem({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const stopLines = useRef<(() => void) | null>(null);
-  // TEMP: line-by-line phone trial. The item fades in at once, then its lines
-  // play; leaving the screen stops them so they replay on the way back.
-  const lines = !reduced && phoneTrial() === "c";
+  // Phones: the item shows at once, then its lines play. Leaving the screen
+  // stops them, so they replay on the way back.
+  const lines = !reduced && isPhone();
   return (
     <motion.div
       ref={ref}
