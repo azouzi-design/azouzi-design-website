@@ -7,29 +7,25 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-// Sits in the shared white card like every other page (no extra margin or
-// background); the min-height fills the viewport inside the page padding
-// (12/16px each side) and the card's top padding.
+// Laid out against the viewport, not the page card (which the data-not-found
+// marker turns transparent, see globals.css): button 20px from the top-left,
+// text centered, decorator 16px from the bottom, left and right.
 export default function NotFound() {
   return (
-    <div className="flex min-h-[calc(100svh-44px)] flex-col md:min-h-[calc(100svh-48px)]">
-      <div className="flex">
-        <Link href="/" className={pillClasses}>
-          <img src="/icons/arrow-redo-down-forward.svg" alt="" width={18} height={18} />
-          Return Home
-        </Link>
-      </div>
-      <div className="flex flex-1 items-center justify-center">
-        <h1 className="text-[15px] font-normal tracking-[-0.15px]">
-          404 — page not found
-        </h1>
-      </div>
+    <div data-not-found>
+      <Link href="/" className={`${pillClasses} fixed top-5 left-5`}>
+        <img src="/icons/arrow-redo-down-forward.svg" alt="" width={18} height={18} />
+        Return Home
+      </Link>
+      <h1 className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[15px] font-normal tracking-[-0.15px] whitespace-nowrap">
+        404 — page not found
+      </h1>
       <img
         src="/images/decorator.svg"
         alt=""
         width={1376}
         height={129}
-        className="block h-auto w-full opacity-80"
+        className="pointer-events-none fixed inset-x-4 bottom-4 block h-auto w-[calc(100%-32px)] opacity-80"
       />
     </div>
   );

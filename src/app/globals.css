@@ -225,3 +225,10 @@ body {
     animation-delay: 0s !important;
   }
 }
+
+/* The 404 page is laid out against the viewport on the plain page grey, so the
+   white card around it steps aside. */
+main:has(> [data-not-found]) {
+  background: transparent;
+  padding: 0;
+}
