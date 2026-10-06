@@ -115,9 +115,9 @@ export const projects: Project[] = [
       "Cynoia is a B2B team-collaboration SaaS platform with a suite of apps, including: project management, chat, video calls, file management, calendars, and notes.",
       "I led all design operations across product, website, web app, mobile app, and social media over 1.5 years, helping turn close to $1M in funding into a successful product from 0\u00a0→\u00a01\u00a0→\u00a0N.",
     ],
-    // A pair of KPIs after every three shots, then the rest of the shots.
+    // A pair of KPIs after every two shots, then the rest of the shots.
     sections: [
-      { images: cynoiaShots.slice(0, 3) },
+      { images: cynoiaShots.slice(0, 2) },
       {
         kpis: [
           { value: "~ $1M Raised", label: "in seed funding" },
@@ -127,7 +127,7 @@ export const projects: Project[] = [
           },
         ],
       },
-      { images: cynoiaShots.slice(3, 6) },
+      { images: cynoiaShots.slice(2, 4) },
       {
         kpis: [
           { value: "+6k Users", label: "Accumulated across +13 countries" },
@@ -137,7 +137,7 @@ export const projects: Project[] = [
           },
         ],
       },
-      { images: cynoiaShots.slice(6) },
+      { images: cynoiaShots.slice(4) },
     ],
   },
   {
