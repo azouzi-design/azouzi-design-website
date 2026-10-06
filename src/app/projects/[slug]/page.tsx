@@ -81,7 +81,7 @@ function ImageRun({
   numberFrom: number;
 }) {
   return (
-    <div className="flex w-full max-w-[920px] flex-col gap-10">
+    <div className="flex w-full max-w-[920px] flex-col gap-5 sm:gap-10">
       {images.map((image, i) => {
         const offset = (first ? IMAGE_DELAY : 0) + i * STAGGER;
         return (
