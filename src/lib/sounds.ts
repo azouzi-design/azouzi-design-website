@@ -20,14 +20,21 @@ function quiet() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+// Set once a click has started the audio context (see playPress).
+let audioStarted = false;
+
 /**
  * "Send", for the page-load sequence. Plays only if the browser already lets
  * this page make sound: browsers keep audio locked until a visitor has
  * interacted, and a sound started then would pile up and play all at once on
  * their first click. Otherwise it is simply skipped.
+ *
+ * Until a click has started the audio context, it is skipped without asking:
+ * checking would create the context, which on phones is slow enough to stall
+ * the first frame of the blur-in it is timed with.
  */
 export function playSend() {
-  if (typeof window === "undefined" || quiet()) return;
+  if (typeof window === "undefined" || quiet() || !audioStarted) return;
   if (getMasterBus().context.state !== "running") return;
   voice().send();
 }
@@ -36,6 +43,7 @@ export function playSend() {
 export function playPress(kind: "click" | "tap") {
   if (typeof window === "undefined" || quiet()) return;
   // A click is a user gesture, so this unlocks audio on the first one.
+  audioStarted = true;
   ensureReady()
     .then(() => voice()[kind]())
     .catch(() => {});

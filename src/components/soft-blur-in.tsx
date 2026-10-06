@@ -99,11 +99,21 @@ function blurVariants(
     };
   }
   return {
-    hidden: { opacity: 0, transform: RISE, filter: "blur(8px)" },
+    // While hidden, will-change has the browser set up each element's GPU layer
+    // ahead of time (during the pause before it plays), instead of setting up
+    // every layer in the animation's first frame, which stalls it on phones.
+    hidden: {
+      opacity: 0,
+      transform: RISE,
+      filter: "blur(8px)",
+      willChange: "opacity, transform, filter",
+    },
     visible: () => ({
       opacity: 1,
       transform: "translateY(0px)",
       filter: "blur(0px)",
+      // Once settled, release the layer and the no-op filter and transform.
+      transitionEnd: { filter: "none", transform: "none", willChange: "auto" },
       transition: {
         duration: DURATION,
         ease: EASE,
