@@ -35,7 +35,7 @@ const contactBlocks: Row[][] = [
   [
     {
       id: "call",
-      label: "Book a call",
+      label: "Book a Call",
       value: "cal.com/azouzi-design/30min",
       href: "https://cal.com/azouzi-design/30min",
     },
