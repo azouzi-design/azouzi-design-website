@@ -69,7 +69,7 @@ export function CallToAction() {
             rel="noopener noreferrer"
             className={linkClasses}
           >
-            Book a call
+            Book a Call
           </a>{" "}
           or{" "}
           <button type="button" onClick={handleCopy} className={linkClasses}>
