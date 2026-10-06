@@ -1,7 +1,13 @@
 "use client";
 
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
+import {
+  linesVisible,
+  phoneTrial,
+  playLines,
+  softRiseVisible,
+} from "@/components/phone-motion-trial";
 import { playSend } from "@/lib/sounds";
 
 // "soft-blur-in": content rises a few px, fades in and sharpens from a soft blur.
@@ -90,6 +96,8 @@ function blurVariants(
     replayDelay = 0,
     replayDelayMinWidth = 0,
   }: Timing = {},
+  /** A text item (SoftBlurItem), for the line-by-line phone trial. */
+  text = false,
 ): Variants {
   // Reduced motion: keep a plain fade, drop the movement and blur.
   if (reduced) {
@@ -108,27 +116,30 @@ function blurVariants(
       filter: "blur(8px)",
       willChange: "opacity, transform, filter",
     },
-    visible: () => ({
-      opacity: 1,
-      transform: "translateY(0px)",
-      filter: "blur(0px)",
-      // Once settled, release the layer and the no-op filter and transform.
-      transitionEnd: { filter: "none", transform: "none", willChange: "auto" },
-      transition: {
-        duration: DURATION,
-        ease: EASE,
-        delay: (() => {
-          switch (phase()) {
-            case "load":
-              return loadDelay(delay);
-            case "navigation":
-              return NAV_DELAY + navOffset;
-            default:
-              return window.innerWidth >= replayDelayMinWidth ? replayDelay : 0;
-          }
-        })(),
-      },
-    }),
+    visible: () => {
+      const start = (() => {
+        switch (phase()) {
+          case "load":
+            return loadDelay(delay);
+          case "navigation":
+            return NAV_DELAY + navOffset;
+          default:
+            return window.innerWidth >= replayDelayMinWidth ? replayDelay : 0;
+        }
+      })();
+      // TEMP: phone alternatives to the blur (see phone-motion-trial.ts).
+      const trial = phoneTrial();
+      if (trial === "c" && text) return linesVisible(start);
+      if (trial) return softRiseVisible(start);
+      return {
+        opacity: 1,
+        transform: "translateY(0px)",
+        filter: "blur(0px)",
+        // Once settled, release the layer and the no-op filter and transform.
+        transitionEnd: { filter: "none", transform: "none", willChange: "auto" },
+        transition: { duration: DURATION, ease: EASE, delay: start },
+      };
+    },
   };
 }
 
@@ -179,7 +190,32 @@ export function SoftBlurIn({
 
 export function SoftBlurItem({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
-  return <motion.div variants={blurVariants(reduced)}>{children}</motion.div>;
+  const ref = useRef<HTMLDivElement>(null);
+  const stopLines = useRef<(() => void) | null>(null);
+  // TEMP: line-by-line phone trial. The item fades in at once, then its lines
+  // play; leaving the screen stops them so they replay on the way back.
+  const lines = !reduced && phoneTrial() === "c";
+  return (
+    <motion.div
+      ref={ref}
+      variants={blurVariants(reduced, {}, true)}
+      onUpdate={
+        lines
+          ? (latest) => {
+              const opacity = Number(latest.opacity);
+              if (opacity > 0 && !stopLines.current && ref.current) {
+                stopLines.current = playLines(ref.current);
+              } else if (opacity === 0 && stopLines.current) {
+                stopLines.current();
+                stopLines.current = null;
+              }
+            }
+          : undefined
+      }
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 /**
