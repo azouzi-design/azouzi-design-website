@@ -12,7 +12,7 @@ come from bugs that have already shipped once.
 
 | File | Role |
 | --- | --- |
-| `badge.tsx` | Page-side wrapper. Reserves the section's height, decides **when** to build the 3D scene and whether to use the light version, and replays the entrance each time the badge scrolls into view. Loads `lanyard.tsx` with `ssr: false`. |
+| `badge.tsx` | Page-side wrapper. Reserves the section's height, decides **when** to build the 3D scene and whether to use the light version, and plays the entrance the first time the badge scrolls into view. Loads `lanyard.tsx` with `ssr: false`. |
 | `lanyard.tsx` | The 3D scene: camera, lights, shadow, physics bodies (`Band`), strap ribbon, drag/hover/tap handling. |
 | `lanyard-layout.ts` | Every size: card size per layout, strap length, the px↔world scale, and the section height. Shared by the page and the scene. |
 | `card-faces.ts` | Draws the front and back artwork onto 2D canvases (used as textures), defines the contact links and their tap areas, and loads fonts. |
@@ -46,12 +46,20 @@ Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194)
 
    `lowPower` is read at that moment (`isLowPower()`) and stays fixed for the
    visit.
-3. **The entrance replays on every scroll-in.** An IntersectionObserver
-   (triggering once 200px of the section is on screen, `TRIGGER_PX`) bumps
-   `playKey`. `<Physics key={playKey-portrait}>` then remounts, so all the
-   bodies spawn again at their start pose and the card is thrown in again.
-   Textures and geometry live in `Lanyard`, above `Physics`, so a replay costs
-   almost nothing.
+3. **The entrance plays once per visit, the first time the badge is seen.**
+   An IntersectionObserver (triggering once 200px of the section is on
+   screen, `TRIGGER_PX`) bumps `playKey` the first time only.
+   `<Physics key={playKey-portrait}>` then remounts, so all the bodies spawn
+   at their start pose and the card is thrown in. Later scroll-ins only set
+   `active` again, and the scene resumes where it was paused, usually at rest.
+   Until that first scroll-in the scene sits paused at its start pose, out of
+   view. The "played" flag (`entrancePlayed` in `badge.tsx`) is module-level,
+   so it survives client-side navigation. Leaving the home page unmounts the
+   badge; on return the bodies spawn **hanging straight down at rest**
+   (`atRest` in `Band`) instead of in the throw pose, so nothing replays. A
+   full page reload resets it. Crossing the phone/desktop breakpoint also remounts `Physics` (its
+   key includes `portrait`), so the throw plays again then. That's intended:
+   the card's size changes.
 4. **Nothing runs while off-screen.** `active` false sets the canvas
    `frameloop="demand"` **and** `Physics paused`. Both are needed: a swinging
    card makes physics request new frames, which would keep rendering unseen.
@@ -220,7 +228,7 @@ every visit.
 | How far it's thrown in from | `spread` in `Band` |
 | Contact links / text on the card | `contactBlocks` / `createBackFace` in `card-faces.ts` |
 | When the scene starts loading | `INTRO_END_MS`, `PRELOAD_MARGIN_PX` in `badge.tsx` |
-| When the entrance plays | `TRIGGER_PX` in `badge.tsx` |
+| How far into view the entrance starts | `TRIGGER_PX` in `badge.tsx` |
 | Material / shadow look | `SURFACE` in `card-surface.ts` |
 
 ## Testing
@@ -250,7 +258,8 @@ every visit.
   `document.fonts.add(new FontFace("Geist Fallback", "local(NoSuchFont)"))`,
   then load the full body font stack. It rejects with `NetworkError`.
 - Checklist after a change: the front, back and strap all show up; the
-  entrance replays when you scroll away and back; dragging and throwing work;
+  entrance plays on the first scroll-in and not again when you scroll away
+  and back; dragging and throwing work;
   a link tap opens and a drag starting on a link doesn't; a desktop link
   click opens a new tab with an ad blocker on; moving off the card resets
   the cursor and hides the link overlay; the card on phones settles fully on
