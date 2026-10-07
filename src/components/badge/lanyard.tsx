@@ -228,8 +228,6 @@ type BandProps = {
   layout: CardLayout;
   /** Real <a> laid over the hovered link row (see useFrame). */
   link: HTMLAnchorElement | null;
-  /** Spawn hanging straight down at rest instead of in the throw pose. */
-  atRest: boolean;
 };
 
 // Everything heavy (textures, geometry) lives in Lanyard so Band can be
@@ -243,19 +241,11 @@ function Band({
   cardGeometry,
   layout,
   link,
-  atRest,
 }: BandProps) {
   const { w: CARD_W, h: CARD_H, segment: SEGMENT } = layout;
   // How far right of the anchor the card is thrown in from. Narrower on
   // phones, where the desktop throw starts and swings off-screen.
   const spread = layout.portrait ? 0.4 : 1;
-  // Start pose of strap joint i (1-3) and the card (4): a horizontal line to
-  // the right of the anchor, which gravity swings down (the entrance), or
-  // hanging straight down at rest when the entrance was already seen.
-  const start = (i: number): [number, number, number] =>
-    atRest
-      ? [0, -(i < 4 ? SEGMENT * i : 3 * SEGMENT + CLIP + CARD_H / 2), 0]
-      : [SEGMENT * 0.7 * i * spread, 0, 0];
   const band = useRef<THREE.Mesh>(null);
   const [ribbon] = useState(createRibbonGeometry);
   const fixed = useRef<Segment>(null!);
@@ -508,17 +498,17 @@ function Band({
     <>
       <group>
         <RigidBody ref={fixed} {...segmentProps} type="fixed" />
-        <RigidBody position={start(1)} ref={j1} {...segmentProps}>
+        <RigidBody position={[SEGMENT * 0.7 * spread, 0, 0]} ref={j1} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
-        <RigidBody position={start(2)} ref={j2} {...segmentProps}>
+        <RigidBody position={[SEGMENT * 1.4 * spread, 0, 0]} ref={j2} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
-        <RigidBody position={start(3)} ref={j3} {...segmentProps}>
+        <RigidBody position={[SEGMENT * 2.1 * spread, 0, 0]} ref={j3} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
         <RigidBody
-          position={start(4)}
+          position={[SEGMENT * 2.8 * spread, 0, 0]}
           ref={card}
           {...segmentProps}
           type={dragged ? "kinematicPosition" : "dynamic"}
@@ -722,15 +712,12 @@ export default function Lanyard({
   active,
   portrait,
   lowPower,
-  startAtRest,
 }: {
   playKey: number;
   active: boolean;
   portrait: boolean;
   /** Slow device (see lib/low-power): use the same lighter settings as phones. */
   lowPower: boolean;
-  /** The entrance already played this visit (see badge.tsx). */
-  startAtRest: boolean;
 }) {
   const lite = portrait || lowPower;
   const layout = useMemo(() => getCardLayout(portrait), [portrait]);
@@ -778,7 +765,6 @@ export default function Lanyard({
             strap={strap}
             cardGeometry={cardGeometry}
             layout={layout}
-            atRest={startAtRest}
             link={link}
           />
         </Physics>

@@ -53,11 +53,9 @@ Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194)
    at their start pose and the card is thrown in. Later scroll-ins only set
    `active` again, and the scene resumes where it was paused, usually at rest.
    Until that first scroll-in the scene sits paused at its start pose, out of
-   view. The "played" flag (`entrancePlayed` in `badge.tsx`) is module-level,
-   so it survives client-side navigation. Leaving the home page unmounts the
-   badge; on return the bodies spawn **hanging straight down at rest**
-   (`atRest` in `Band`) instead of in the throw pose, so nothing replays. A
-   full page reload resets it. Crossing the phone/desktop breakpoint also remounts `Physics` (its
+   view. The "played" flag lives in the badge, so
+   leaving the home page and coming back (which remounts it) or reloading
+   plays the entrance once more. Crossing the phone/desktop breakpoint also remounts `Physics` (its
    key includes `portrait`), so the throw plays again then. That's intended:
    the card's size changes.
 4. **Nothing runs while off-screen.** `active` false sets the canvas

@@ -17,11 +17,6 @@ const TRIGGER_PX = 200;
 const INTRO_END_MS = 4000;
 const PRELOAD_MARGIN_PX = 300;
 
-// Module-level so it survives client-side navigation: leaving the home page
-// unmounts the badge, and coming back must not replay the entrance. Resets on
-// a full page load.
-let entrancePlayed = false;
-
 const NARROW_QUERY = `(max-width: ${PORTRAIT_MAX_WIDTH}px)`;
 
 /** True on narrow screens, where the upright card is used. */
@@ -42,8 +37,6 @@ export function Badge() {
   const [active, setActive] = useState(false);
   const [playKey, setPlayKey] = useState(0);
   const portrait = useNarrowScreen();
-  // Entrance already seen this visit: the card starts hanging at rest.
-  const [startAtRest] = useState(() => entrancePlayed);
   // null until the scene may be built; then whether to build its lighter version.
   const [lowPower, setLowPower] = useState<boolean | null>(null);
 
@@ -78,13 +71,14 @@ export function Badge() {
     const element = ref.current;
     if (!element) return;
     let visible = false;
+    let played = false;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting === visible) return;
         visible = entry.isIntersecting;
         setActive(visible);
-        if (visible && !entrancePlayed) {
-          entrancePlayed = true;
+        if (visible && !played) {
+          played = true;
           setPlayKey((key) => key + 1);
         }
       },
@@ -111,7 +105,6 @@ export function Badge() {
           active={active}
           portrait={portrait}
           lowPower={lowPower}
-          startAtRest={startAtRest}
         />
       )}
     </section>
