@@ -96,6 +96,7 @@ function ImageRun({
             // The stroke is an overlay, so it never changes the media's size.
             // Stroked shots also get a very slight shadow.
             className={`relative w-full overflow-clip rounded-(--media-radius) ${image ? "" : "h-[300px] bg-background-200 sm:h-[524px]"} ${image?.stroke ? "shadow-[0_1px_4px_rgba(23,23,23,0.03)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-stroke" : ""}`}
+            style={image?.radius ? { borderRadius: image.radius } : undefined}
           >
             {image?.video ? (
               <ProjectVideo video={image} />

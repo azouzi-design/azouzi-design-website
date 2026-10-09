@@ -8,19 +8,23 @@ export type ProjectImage = {
   video?: boolean;
   /** Draw the stroke around it (for shots that blend into the page). */
   stroke?: boolean;
+  /** Corner radius in px, in place of the shared --media-radius. */
+  radius?: number;
 };
 
 /**
  * A project's numbered shots from public/projects/<id>/, given as
  * [file, width, height]. Videos were converted to web .mp4 (1920px wide at
  * most, 60fps at most, no audio) from the originals. `stroked` lists the
- * shot numbers that get the stroke.
+ * shot numbers that get the stroke; `radius` sets a corner radius (px) on
+ * given shot numbers in place of the shared one.
  */
 function shots(
   id: string,
   alt: string,
   files: [string, number, number][],
   stroked: number[],
+  radius: Record<number, number> = {},
 ): ProjectImage[] {
   return files.map(([file, width, height]) => ({
     src: `/projects/${id}/${file}`,
@@ -29,6 +33,7 @@ function shots(
     alt: `${alt} work, shot ${parseInt(file)}`,
     video: file.endsWith(".mp4"),
     stroke: stroked.includes(parseInt(file)),
+    radius: radius[parseInt(file)],
   }));
 }
 
@@ -209,7 +214,8 @@ export const projects: Project[] = [
           ["10.mp4", 1920, 1186],
           ["12.mp4", 1920, 1186],
           ["14.mp4", 1920, 1142],
-        ], [1, 13]),
+        // The video formats (3, 4, 5) get tighter corners.
+        ], [1, 13], { 3: 6, 4: 6, 5: 6 }),
       },
     ],
   },

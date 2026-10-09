@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { useRef, type ReactNode } from "react";
+import { useRef, type CSSProperties, type ReactNode } from "react";
 import {
   isPhone,
   linesVisible,
@@ -227,6 +227,7 @@ export function SoftBlurItem({ children }: { children: ReactNode }) {
 export function SoftBlurView({
   children,
   className,
+  style,
   id,
   skipOnNavigation,
   once = false,
@@ -235,6 +236,7 @@ export function SoftBlurView({
 }: {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
   id?: string;
   /** Mount already visible after a client-side navigation, so a shared
    * element arriving from another page isn't hidden mid-transition. */
@@ -249,6 +251,7 @@ export function SoftBlurView({
     <motion.div
       id={id}
       className={className}
+      style={style}
       initial={skipOnNavigation && appHydrated ? false : "hidden"}
       whileInView="visible"
       onViewportEnter={sound ? () => soundOnLoad(timing.delay ?? 0) : undefined}
