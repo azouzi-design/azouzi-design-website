@@ -1,7 +1,6 @@
 import { ViewTransition } from "react";
 import Link from "next/link";
-import { ProjectPeek } from "@/components/project-peek";
-import { getPeekFrames, projects, type Project } from "@/lib/projects";
+import { projects, type Project } from "@/lib/projects";
 import { pillClasses } from "@/lib/styles";
 
 /**
@@ -88,7 +87,6 @@ export function ProjectCardLink({ project }: { project: Project }) {
         className={`${cardClasses} ${interactiveClasses}`}
       >
         <Logo project={project} open={false} />
-        <ProjectPeek frames={getPeekFrames(project)} />
       </Link>
     </CardTransition>
   );

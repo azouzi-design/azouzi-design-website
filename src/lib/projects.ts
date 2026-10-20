@@ -226,25 +226,6 @@ export function getSections(project: Project): ProjectSection[] {
   return project.sections ?? [PLACEHOLDERS];
 }
 
-/** The small copies of a project's shots that its home card's peek plays,
- * made by scripts/make-peek.sh into public/projects/<id>/peek/. */
-export function getPeekFrames(project: Project): ProjectImage[] {
-  return getSections(project).flatMap((section) =>
-    "images" in section
-      ? section.images
-          .filter((image) => image !== null)
-          .map((image) => ({
-            ...image,
-            // Stills are JPEGs there (the shots are opaque).
-            src: `/projects/${project.id}/peek/${image.src
-              .split("/")
-              .pop()!
-              .replace(/\.png$/, ".jpg")}`,
-          }))
-      : [],
-  );
-}
-
 export function getProject(id: string) {
   return projects.find((project) => project.id === id);
 }
