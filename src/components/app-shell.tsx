@@ -49,9 +49,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     // The badge hangs below the card on the home page; elsewhere the card gets
-    // the same margin at the bottom as at the top.
+    // the same margin at the bottom as at the top. Above 1680px the card keeps
+    // 80px clear on each side.
     <div
-      className={`min-h-svh px-3 pt-3 md:px-4 md:pt-4 ${isHome ? "" : "pb-3 md:pb-4"}`}
+      className={`min-h-svh px-3 pt-3 md:px-4 md:pt-4 min-[105rem]:px-20 ${isHome ? "" : "pb-3 md:pb-4"}`}
     >
       <main className="main-reveal relative isolate w-full overflow-clip rounded-(--card-radius) bg-background-100 px-3 pt-3 text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
         {/* Vertical grid lines (home page only), tied to the text columns: the intro's left edge,
