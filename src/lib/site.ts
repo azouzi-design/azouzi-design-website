@@ -9,7 +9,7 @@ export const SITE_DESCRIPTION =
 export const OG_ALT =
   "Ahmed A. Azouzi — senior-level design at a fraction of what an agency or a full-time hire would cost.";
 /** The page background, used for the browser UI color and the manifest. */
-export const THEME_COLOR = "#f6f6f6";
+export const THEME_COLOR = "#ffffff";
 
 /** A meta description from an intro paragraph: whole sentences, 160 characters at most. */
 export function describe(paragraph: string) {

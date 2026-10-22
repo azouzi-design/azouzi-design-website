@@ -1,7 +1,7 @@
 # Business card (hanging badge)
 
-The 3D business card hanging from an `AZOUZI.DESIGN` lanyard below the
-homepage. You can drag and throw it, flip it to see the back, and tap the
+The 3D business card hanging from an `AZOUZI.DESIGN` lanyard, shown in the
+home page's Contact overlay. You can drag and throw it, flip it to see the back, and tap the
 contact links printed on it. It's built with three.js (via React Three Fiber)
 and Rapier physics.
 
@@ -20,14 +20,23 @@ come from bugs that have already shipped once.
 | `src/lib/low-power.ts` | Decides once per visit whether the device is slow, by measuring the first second of frames. |
 | `public/images/card-front-decorator.svg`, `card-back-decorator.svg` | Name artwork drawn onto the faces. |
 
-It's mounted once, in `src/components/app-shell.tsx`, **on the home page only**
-(`isHome && <Badge />`), below the main white card.
+It's mounted in the **Contact overlay** of the home page
+(`ContactContent` in `src/components/home-page.tsx`), as
+`<Badge strapScale={CONTACT_STRAP_SCALE} immediate fullBleed={false} />`:
 
-The section is **full-bleed**: `-mx-3 md:-mx-4` cancels the app shell's side
-padding, so the transparent canvas spans the whole screen width. If the canvas
-stops short of the screen edge, the card's shadow (which falls to the right)
-is cut off in a hard vertical line that looks like a white strip on phones.
-If the shell's padding changes, change these margins to match.
+- `strapScale` lengthens the strap (1.15 there). It feeds `getCardLayout`, so
+  the physics, strap and section height all follow.
+- `immediate` builds the scene right away: the overlay is only the card, so
+  there's nothing for it to wait behind (see Lifecycle, step 2).
+- `fullBleed={false}` drops the `-mx-3 md:-mx-4` margins. Those cancelled the
+  old page frame's side padding so the canvas reached the screen edges; the
+  overlay has no padding, so the canvas already spans the full width. Whatever
+  holds the badge, its canvas must reach the screen edges, or the card's
+  shadow (which falls to the right) is cut off in a hard vertical line that
+  looks like a white strip on phones.
+
+The defaults (`strapScale` 1, not immediate, full-bleed) are the original
+home-page behaviour, below a white page card that no longer exists.
 
 Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194).
 

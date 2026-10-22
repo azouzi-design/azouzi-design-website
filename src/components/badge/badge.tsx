@@ -32,7 +32,21 @@ function useNarrowScreen() {
   );
 }
 
-export function Badge() {
+/**
+ * The hanging business card. On the home page it uses the defaults. Elsewhere:
+ * `strapScale` lengthens the strap, `immediate` builds the scene right away
+ * (for a page that is only the card), and `fullBleed: false` drops the
+ * margins that cancel the app shell's padding (for pages without the shell).
+ */
+export function Badge({
+  strapScale = 1,
+  immediate = false,
+  fullBleed = true,
+}: {
+  strapScale?: number;
+  immediate?: boolean;
+  fullBleed?: boolean;
+} = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(false);
   const [playKey, setPlayKey] = useState(0);
@@ -50,7 +64,7 @@ export function Badge() {
       if ("requestIdleCallback" in window) {
         idle = requestIdleCallback(build, { timeout: 1000 });
       } else build();
-    }, INTRO_END_MS - performance.now());
+    }, immediate ? 0 : INTRO_END_MS - performance.now());
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) build();
@@ -63,7 +77,7 @@ export function Badge() {
       if (idle) cancelIdleCallback(idle);
       observer.disconnect();
     };
-  }, []);
+  }, [immediate]);
 
   // Play the entrance the first time the badge scrolls into view only. Later
   // scroll-ins just resume the scene (it's paused while off-screen).
@@ -96,8 +110,8 @@ export function Badge() {
       // Full-bleed: cancels the app shell's side padding (px-3 md:px-4) so the
       // canvas reaches the screen edges. Otherwise the card's shadow, which
       // falls to the right, is cut off in a hard line before the edge.
-      className="-mx-3 md:-mx-4"
-      style={{ height: getCardLayout(portrait).areaHeightPx }}
+      className={fullBleed ? "-mx-3 md:-mx-4" : undefined}
+      style={{ height: getCardLayout(portrait, strapScale).areaHeightPx }}
     >
       {lowPower !== null && (
         <Lanyard
@@ -105,6 +119,7 @@ export function Badge() {
           active={active}
           portrait={portrait}
           lowPower={lowPower}
+          strapScale={strapScale}
         />
       )}
     </section>

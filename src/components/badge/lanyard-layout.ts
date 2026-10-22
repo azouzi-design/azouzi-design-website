@@ -33,11 +33,12 @@ export type CardLayout = {
   areaHeightPx: number;
 };
 
-export function getCardLayout(portrait: boolean): CardLayout {
+/** `strapScale` lengthens (or shortens) the strap; 1 is the home page's. */
+export function getCardLayout(portrait: boolean, strapScale = 1): CardLayout {
   const pxW = portrait ? PORTRAIT_W : LANDSCAPE_W;
   const pxH = portrait ? PORTRAIT_H : Math.round(pxW / 1.75);
   const h = pxH / PX_PER_UNIT;
-  const segment = portrait ? PORTRAIT_SEGMENT : SEGMENT;
+  const segment = (portrait ? PORTRAIT_SEGMENT : SEGMENT) * strapScale;
   return {
     portrait,
     segment,

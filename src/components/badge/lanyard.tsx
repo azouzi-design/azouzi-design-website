@@ -712,15 +712,18 @@ export default function Lanyard({
   active,
   portrait,
   lowPower,
+  strapScale = 1,
 }: {
   playKey: number;
   active: boolean;
   portrait: boolean;
   /** Slow device (see lib/low-power): use the same lighter settings as phones. */
   lowPower: boolean;
+  /** Strap length relative to the home page's (see getCardLayout). */
+  strapScale?: number;
 }) {
   const lite = portrait || lowPower;
-  const layout = useMemo(() => getCardLayout(portrait), [portrait]);
+  const layout = useMemo(() => getCardLayout(portrait, strapScale), [portrait, strapScale]);
   const cardGeometry = useMemo(() => createCardGeometry(layout), [layout]);
   useEffect(
     () => () => {

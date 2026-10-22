@@ -1,7 +1,4 @@
-import type { Metadata } from "next";
 import Image from "next/image";
-import { notFound } from "next/navigation";
-import { ProjectCardHeader } from "@/components/project-card";
 import { ProjectVideo } from "@/components/project-video";
 import {
   STAGGER,
@@ -9,49 +6,12 @@ import {
   SoftBlurItem,
   SoftBlurView,
 } from "@/components/soft-blur-in";
-import { OG_ALT, SEP, SITE_NAME, describe } from "@/lib/site";
 import {
-  getProject,
   getSections,
-  projects,
   type Kpi,
   type Project,
   type ProjectImage,
 } from "@/lib/projects";
-
-type Props = { params: Promise<{ slug: string }> };
-
-export function generateStaticParams() {
-  return projects.map((project) => ({ slug: project.id }));
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const project = getProject((await params).slug);
-  if (!project) return {};
-  const description = describe(project.paragraphs[0]);
-  const url = `/projects/${project.id}`;
-  return {
-    title: project.alt,
-    description,
-    alternates: { canonical: url },
-    openGraph: {
-      type: "article",
-      siteName: SITE_NAME,
-      url,
-      title: `${project.alt}${SEP}${SITE_NAME}`,
-      description,
-      images: [
-        { url: "/opengraph-image.png", width: 1200, height: 630, alt: OG_ALT },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${project.alt}${SEP}${SITE_NAME}`,
-      description,
-      images: [{ url: "/twitter-image.png", alt: OG_ALT }],
-    },
-  };
-}
 
 // Seconds between the text and the first image starting: the same gap as the
 // home page's text and photo (SEQUENCE.photo), so the image arrives once the
@@ -128,9 +88,9 @@ function ImageRun({
  * page. They play one after the other, like the home page's project cards,
  * when scrolled to: never as part of the page's opening sequence, so KPIs
  * near the top (Thunders) don't wait for it. */
-function KpiBlock({ kpis }: { kpis: Kpi[] }) {
+function KpiBlock({ kpis, centered }: { kpis: Kpi[]; centered: boolean }) {
   return (
-    <section className="w-full max-w-[320px] md:translate-x-1/2">
+    <section className={`w-full ${centered ? "max-w-[380px] text-center" : "max-w-[320px] md:translate-x-1/2"}`}>
       <div className="flex flex-col gap-16">
         {kpis.map(({ value, label }, i) => (
           <SoftBlurView
@@ -150,10 +110,23 @@ function KpiBlock({ kpis }: { kpis: Kpi[] }) {
   );
 }
 
-export default async function ProjectPage({ params }: Props) {
-  const project = getProject((await params).slug);
-  if (!project) notFound();
-
+/**
+ * A project's content under its header: the intro paragraphs, then its image
+ * runs and KPIs, as the home page shows it. Without `centered` the text
+ * blocks sit either side of the page center;
+ * `centered` puts them on it instead, with their lines centered too, in a
+ * wider 380px column (320px otherwise). `intro={false}` leaves out the
+ * paragraphs.
+ */
+export function ProjectBody({
+  project,
+  centered = false,
+  intro = true,
+}: {
+  project: Project;
+  centered?: boolean;
+  intro?: boolean;
+}) {
   const sections = getSections(project);
   // Where each image run starts in the page-wide placeholder numbering.
   const numberFrom = sections.map(
@@ -165,31 +138,24 @@ export default async function ProjectPage({ params }: Props) {
   );
 
   return (
-    // At 980px and below the header sits 12px under the card's top edge (just
-    // the card's own padding), matching the space at its sides. At the bottom,
-    // room for the floating end bar (48px, 12px or 20px off the card's edge)
-    // plus a 120px gap above it.
-    <div className="flex flex-col items-center gap-20 pb-[180px] min-[981px]:pt-2 min-[981px]:pb-[188px]">
-      {/* The home page card, moved to the top */}
-      <div className="w-full max-w-[920px]">
-        <ProjectCardHeader project={project} />
-      </div>
-
+    <>
       {/* Same horizontal position as the intro block on the home page. Narrows
           to fit on small phones, like the home blocks do. */}
-      <section className="w-full max-w-[320px] md:-translate-x-1/2">
-        <SoftBlurIn className="flex flex-col gap-3">
-          {project.paragraphs.map((paragraph) => (
-            <SoftBlurItem key={paragraph}>
-              <p>{paragraph}</p>
-            </SoftBlurItem>
-          ))}
-        </SoftBlurIn>
-      </section>
+      {intro && (
+        <section className={`w-full ${centered ? "max-w-[380px] text-center" : "max-w-[320px] md:-translate-x-1/2"}`}>
+          <SoftBlurIn className="flex flex-col gap-3">
+            {project.paragraphs.map((paragraph) => (
+              <SoftBlurItem key={paragraph}>
+                <p>{paragraph}</p>
+              </SoftBlurItem>
+            ))}
+          </SoftBlurIn>
+        </section>
+      )}
 
       {sections.map((section, i) =>
         "kpis" in section ? (
-          <KpiBlock key={i} kpis={section.kpis} />
+          <KpiBlock key={i} kpis={section.kpis} centered={centered} />
         ) : (
           <ImageRun
             key={i}
@@ -200,6 +166,6 @@ export default async function ProjectPage({ params }: Props) {
           />
         ),
       )}
-    </div>
+    </>
   );
 }

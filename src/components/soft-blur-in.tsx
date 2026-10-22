@@ -23,8 +23,8 @@ export const TEXT_DELAY = 0.8;
 // Page-load delays only apply while the page is still loading; later replays
 // use `replayDelay` instead.
 const INITIAL_LOAD_MS = 4000;
-// Seconds the <main> reveal (.main-reveal in globals.css) takes before any
-// content starts, on page load only.
+// Seconds before any content starts, on page load only. (It once matched the
+// card reveal of the old home page; it now just paces the opening.)
 const INTRO_DELAY = 1.1;
 
 // After a client-side navigation (opening or closing a project), content
