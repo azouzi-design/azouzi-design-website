@@ -241,7 +241,7 @@ function OverlayShell({
       role="dialog"
       aria-modal="true"
       aria-label={label}
-      className="fixed inset-0 z-[60] overflow-y-auto bg-concept-background/70 backdrop-blur-[24px]"
+      className="fixed inset-0 z-[60] overflow-y-auto bg-concept-background/90 backdrop-blur-[24px]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -373,7 +373,7 @@ function BottomBar({
           a quick ease-out in (the site's blur-in curve), a faster ease-in
           out. No overshoot. */}
       <motion.div
-        className="relative flex justify-center px-3 pt-8 pb-7 sm:px-5"
+        className="relative flex justify-center px-3 pt-8 pb-5 sm:px-5 lg:pb-6"
         initial={false}
         animate={
           reduced
