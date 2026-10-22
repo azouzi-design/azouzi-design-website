@@ -175,6 +175,9 @@ export default function NameLogoScene({
       camera={{ fov: FOV, near: 1 }}
       dpr={Math.min(6, window.devicePixelRatio * 3)}
       gl={{ alpha: true, antialias: true }}
+      // The canvas is wider than the name and would otherwise take taps meant
+      // for the buttons beside it (the pointer is read window-wide instead).
+      style={{ pointerEvents: "none" }}
     >
       <PixelCamera />
       <Lights />
