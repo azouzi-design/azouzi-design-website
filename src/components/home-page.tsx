@@ -253,12 +253,12 @@ function OverlayShell({
         onClick={onClose}
         autoFocus
         aria-label="Return Home"
-        className={`${outlineButtonClasses} button-appear fixed top-4 left-4 z-10 max-sm:w-10 max-sm:px-0`}
+        className={`${outlineButtonClasses} button-appear fixed top-4 left-4 z-10`}
         style={appearAfter(0)}
       >
         <img src="/icons/arrow-redo-down-forward.svg" alt="" width={18} height={18} />
-        {/* Icon only on phones, so it clears the name. */}
-        <span className="max-sm:hidden">Return Home</span>
+        {/* Just "Return" on phones, to leave room for the name. */}
+        Return<span className="max-sm:hidden"> Home</span>
       </button>
       {children}
     </motion.div>
@@ -292,13 +292,15 @@ function ContactContent() {
 
 /** The name, centered at the top, level with the buttons' middle (16px +
  * half their 40px, less half its own height: 22px, or 21px on phones).
- * `raised` puts it above an overlay (About), so it stays put and sharp. */
-function Logo({ raised }: { raised: boolean }) {
+ * `raised` puts it above an overlay (About), so it stays put and sharp.
+ * `hidden` fades it out on phones while an overlay is open, where it would
+ * run into the Return button. */
+function Logo({ raised, hidden }: { raised: boolean; hidden: boolean }) {
   return (
     <Link
       href="/"
       aria-label="Ahmed A. Azouzi, home"
-      className={`fixed top-[25.5px] left-1/2 -translate-x-1/2 sm:top-[25px] ${raised ? "z-[70]" : "z-50"}`}
+      className={`fixed top-[25.5px] left-1/2 -translate-x-1/2 transition-opacity duration-300 sm:top-[25px] ${raised ? "z-[70]" : "z-50"} ${hidden ? "max-sm:pointer-events-none max-sm:opacity-0" : ""}`}
     >
       <h1 className="sr-only">Ahmed A. Azouzi</h1>
       <NameLogo3D />
@@ -471,7 +473,7 @@ export function HomePage({
           </OverlayShell>
         )}
       </AnimatePresence>
-      <Logo raised={overlay === "about"} />
+      <Logo raised={overlay === "about"} hidden={overlay !== null} />
       {/* Clears the bars at either end: their height plus room to breathe. */}
       <main className="px-5 pt-[132px] pb-[168px] text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
         {/* Keyed so the new project plays its blur-in from the start. */}
