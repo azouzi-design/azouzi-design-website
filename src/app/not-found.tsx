@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { pillClasses } from "@/lib/styles";
+import { outlineButtonClasses } from "@/lib/styles";
 
 export const metadata: Metadata = {
   title: "404",
   robots: { index: false },
 };
 
-// Laid out against the viewport, not the page card (which the data-not-found
-// marker turns transparent, see globals.css): button 20px from the top-left,
-// text centered, decorator 16px from the bottom, left and right.
+// Laid out against the viewport: Return Home 16px from the top-left, as in
+// the home page's overlays, text centered, decorator 16px from the bottom,
+// left and right.
 export default function NotFound() {
   return (
-    <div data-not-found>
-      <Link href="/" className={`${pillClasses} fixed top-5 left-5`}>
+    <div>
+      <Link href="/" className={`${outlineButtonClasses} fixed top-4 left-4`}>
         <img src="/icons/arrow-redo-down-forward.svg" alt="" width={18} height={18} />
         Return Home
       </Link>

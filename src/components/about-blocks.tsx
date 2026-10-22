@@ -3,8 +3,8 @@ import { CallToAction } from "@/components/call-to-action";
 import { SoftBlurIn, SoftBlurItem } from "@/components/soft-blur-in";
 import { linkClasses } from "@/lib/styles";
 
-// The home page's two text blocks: who I am, and how I work. Also shown in
-// the /concept page's About & Services overlay.
+// The two text blocks of the home page's About & Services overlay: who I am,
+// and how I work.
 
 const services = [
   ["I work exactly like a team member", "embedded inside your team"],
@@ -69,7 +69,7 @@ export function IntroBlock({
           <SoftBlurItem>
             <p>
               Loves building consumer products{" "}
-              <Link href="/projects/stint" className={linkClasses}>
+              <Link href="/?project=stint" className={linkClasses}>
                 @Stint
               </Link>
             </p>

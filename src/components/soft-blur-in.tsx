@@ -23,13 +23,11 @@ export const TEXT_DELAY = 0.8;
 // Page-load delays only apply while the page is still loading; later replays
 // use `replayDelay` instead.
 const INITIAL_LOAD_MS = 4000;
-// Seconds before any content starts, on page load only. (It once matched the
-// card reveal of the old home page; it now just paces the opening.)
+// Seconds before any content starts, on page load only; it paces the opening.
 const INTRO_DELAY = 1.1;
 
-// After a client-side navigation (opening or closing a project), content
-// starts while the project card is mid-flight (it takes 650ms, see "Project
-// transitions" in globals.css), so the page settles as the card lands.
+// After a client-side navigation (e.g. back home from the 404 page), content
+// starts after this short pause instead of the page-load delays.
 const NAV_DELAY = 0.3;
 // How long after a navigation its timing applies; later scroll-ins replay.
 const NAV_WINDOW_MS = 1500;

@@ -1,4 +1,4 @@
-// Scroll effects for the /concept page's project media: Drum on /concept
+// Scroll effects for the home page's project media: Drum on the home page
 // (DEFAULT_EFFECT), the others on /concept/effects/<id>.
 // Each is a pair of GLSL snippets dropped into the shared shaders in
 // scene.tsx.

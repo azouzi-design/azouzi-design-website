@@ -13,12 +13,10 @@ import {
   type ProjectImage,
 } from "@/lib/projects";
 
-// Seconds between the text and the first image starting: the same gap as the
-// home page's text and photo (SEQUENCE.photo), so the image arrives once the
-// paragraphs have mostly settled.
+// Seconds between the text and the first image starting, so the image
+// arrives once the paragraphs have mostly settled.
 const IMAGE_DELAY = 1.0;
-// Seconds between KPIs playing in turn: the same step as the home page's
-// project cards (SEQUENCE.cardStep).
+// Seconds between KPIs playing in turn.
 const KPI_STEP = 0.12;
 
 /**
@@ -84,10 +82,10 @@ function ImageRun({
   );
 }
 
-/** KPIs — left edge on the page center, like the services block on the home
- * page. They play one after the other, like the home page's project cards,
- * when scrolled to: never as part of the page's opening sequence, so KPIs
- * near the top (Thunders) don't wait for it. */
+/** KPIs — centered, or (`centered` false) with their left edge on the page
+ * center. They play one after the other when scrolled to: never as part of
+ * the page's opening sequence, so KPIs near the top (Thunders) don't wait
+ * for it. */
 function KpiBlock({ kpis, centered }: { kpis: Kpi[]; centered: boolean }) {
   return (
     <section className={`w-full ${centered ? "max-w-[380px] text-center" : "max-w-[320px] md:translate-x-1/2"}`}>

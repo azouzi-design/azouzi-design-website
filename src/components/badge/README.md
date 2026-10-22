@@ -243,8 +243,8 @@ every visit.
 - **Test on a real Android phone** for anything that touches fonts, textures,
   touch or performance. Desktop Chrome on a Mac has hidden every bug so far.
 - To check the phone layout on desktop: load any page, replace the document
-  with a 390px-wide `<iframe src="/">`, then scroll the iframe to
-  `#business-card`. The iframe's `matchMedia` picks portrait. Resizing the
+  with a 390px-wide `<iframe src="/">`, then click **Contact me** inside the
+  iframe. The iframe's `matchMedia` picks portrait. Resizing the
   window with browser automation hasn't worked reliably.
 - A tab in the **background doesn't animate**: requestAnimationFrame is
   paused, so the canvas looks empty. IntersectionObserver is paused too, so
@@ -265,8 +265,8 @@ every visit.
   `document.fonts.add(new FontFace("Geist Fallback", "local(NoSuchFont)"))`,
   then load the full body font stack. It rejects with `NetworkError`.
 - Checklist after a change: the front, back and strap all show up; the
-  entrance plays on the first scroll-in and not again when you scroll away
-  and back; dragging and throwing work;
+  entrance plays each time the Contact overlay opens (closing it unmounts the
+  badge); dragging and throwing work;
   a link tap opens and a drag starting on a link doesn't; a desktop link
   click opens a new tab with an ad blocker on; moving off the card resets
   the cursor and hides the link overlay; the card on phones settles fully on

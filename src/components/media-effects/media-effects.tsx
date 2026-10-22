@@ -9,8 +9,8 @@ import { isLowPower } from "@/lib/low-power";
 const Scene = dynamic(() => import("./scene"), { ssr: false });
 
 /**
- * The /concept page's project media, shaped by a scroll effect as they come
- * in (`effect`, from effects.ts; Bend by default). A fixed canvas over the content, under the bars.
+ * The home page's project media, shaped by a scroll effect as they come
+ * in (`effect`, from effects.ts; Drum by default). A fixed canvas over the content, under the bars.
  * Skipped with reduced motion or on low-power devices, where the media simply
  * stay as they are.
  */

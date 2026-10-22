@@ -9,16 +9,12 @@ export const linkClasses =
 const buttonBase =
   "flex h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 px-3 text-[15px] leading-[normal] font-medium tracking-[-0.15px] whitespace-nowrap text-gray-1000 transition-[scale,background-color,border-color] duration-200 ease-out active:scale-[0.97] active:duration-100";
 
-// White pill buttons: scroll to top, and the project page header's links.
-export const pillClasses = `${buttonBase} rounded-full bg-background-100`;
-
-// A white button with a stroke and 12px corners (the home page's top
-// buttons). Hover: the barest grey.
+// The site's button: white with a stroke and 12px corners (About & Services,
+// Contact me, Return Home). Hover: the barest grey.
 export const outlineButtonClasses = `${buttonBase} rounded-[12px] border border-stroke bg-background-100 hover:bg-[color-mix(in_srgb,var(--ds-background-100),var(--ds-gray-1000)_1.5%)]`;
 
-// Buttons that blur in like the project pages' header buttons (add the
-// .button-appear class, see globals.css) do so one after another, this far
-// apart.
+// Buttons that blur in (add the .button-appear class, see globals.css) do so
+// one after another, this far apart.
 const APPEAR_START_MS = 200;
 const APPEAR_STEP_MS = 60;
 

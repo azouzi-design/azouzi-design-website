@@ -59,7 +59,8 @@ export type Project = {
   alt: string;
   width: number;
   mask?: string;
-  /** The logo's own color: the project page header uses it as its background. */
+  /** The logo's own color. (Unused since the project pages went; the old
+   * project header used it as its background.) */
   brand: string;
   /** The intro text under the project bar, one entry per paragraph. */
   paragraphs: string[];
