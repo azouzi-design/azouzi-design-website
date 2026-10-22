@@ -52,7 +52,7 @@ export function CallToAction() {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center justify-center gap-2">
       {/* Both states share one grid cell, so the line never changes size. */}
       <p className="grid whitespace-nowrap">
         <motion.span
