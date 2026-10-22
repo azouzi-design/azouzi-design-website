@@ -189,18 +189,20 @@ function OverlayShell({
   );
 }
 
-/** About & Services: the profile photo over the intro (short), then the
- * services 80px below, all centered. The name stays visible above this
+/** About & Services: the profile photo (120px; top-right corner on desktop,
+ * over the intro on phones), the intro (short), then the services 80px below,
+ * all centered, as flowing text. The name stays visible above this
  * overlay. */
 function AboutContent() {
   return (
     <div className="flex min-h-full items-center justify-center px-4 pt-[120px] pb-16 text-center text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
       <div className="flex w-[440px] max-w-full flex-col items-center gap-20">
         <div className="flex flex-col items-center gap-8">
-          <ProfilePhoto />
-          <IntroBlock short />
+          {/* Above the intro on phones; on desktop, in the top-right corner. */}
+          <ProfilePhoto size={120} className="md:fixed md:top-5 md:right-5" />
+          <IntroBlock short flow />
         </div>
-        <ServicesBlock />
+        <ServicesBlock flow />
       </div>
     </div>
   );

@@ -12,12 +12,21 @@ const photoShadow = [
   "2px 5px 6px -2px rgba(0,0,0,0.075)",
 ].join(", ");
 
-/** The profile photo as a small, slightly tilted print (80px), blurring in
- * after `delay` seconds. Hovering plays a VHS tape effect over it. */
-export function ProfilePhoto({ delay = 0 }: { delay?: number }) {
+/** The profile photo as a small, slightly tilted print (`size` px, 80 by
+ * default), blurring in after `delay` seconds. Hovering plays a VHS tape
+ * effect over it. */
+export function ProfilePhoto({
+  size = 80,
+  delay = 0,
+  className,
+}: {
+  size?: number;
+  delay?: number;
+  className?: string;
+}) {
   return (
-    <SoftBlurView delay={delay}>
-      <div className="relative size-20 -rotate-1">
+    <SoftBlurView delay={delay} className={className}>
+      <div className="relative -rotate-1" style={{ width: size, height: size }}>
         {/* Bottom corners lift slightly off the page */}
         <span
           aria-hidden
@@ -36,9 +45,8 @@ export function ProfilePhoto({ delay = 0 }: { delay?: number }) {
               src="/images/azouzi.jpg"
               alt="Ahmed Azouzi"
               fill
-              // Shows at 80px; ask for a 2x-sharp copy so retina and phone
-              // screens stay crisp.
-              sizes="180px"
+              // A 2x-sharp copy, so retina and phone screens stay crisp.
+              sizes={`${size * 2}px`}
               quality={90}
               className="object-cover"
             />

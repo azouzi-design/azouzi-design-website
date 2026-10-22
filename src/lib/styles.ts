@@ -12,9 +12,9 @@ const buttonBase =
 // White pill buttons: scroll to top, and the project page header's links.
 export const pillClasses = `${buttonBase} rounded-full bg-background-100`;
 
-// A stroked button with no fill and 12px corners (the /concept page's top
-// buttons). Hover: the barest tint.
-export const outlineButtonClasses = `${buttonBase} rounded-[12px] border border-stroke hover:bg-gray-1000/[0.015]`;
+// A white button with a stroke and 12px corners (the home page's top
+// buttons). Hover: the barest grey.
+export const outlineButtonClasses = `${buttonBase} rounded-[12px] border border-stroke bg-background-100 hover:bg-[color-mix(in_srgb,var(--ds-background-100),var(--ds-gray-1000)_1.5%)]`;
 
 // Buttons that blur in like the project pages' header buttons (add the
 // .button-appear class, see globals.css) do so one after another, this far
