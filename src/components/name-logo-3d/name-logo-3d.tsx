@@ -24,15 +24,11 @@ function usePhone() {
   return phone;
 }
 
-// The header camera's field of view (degrees): narrow, so the camera sits far
-// back and the letters keep their proportions as they turn.
-const HEADER_FOV = 6;
-
 /**
- * The header's name logo as extruded 3D letters in grey enamel, swaying and
- * leaning toward the pointer. The flat SVG holds its place (and shows until the scene is up,
- * or if WebGL isn't available); the canvas sits centered over it, larger so
- * the turning letters never clip.
+ * The header's name logo as 3D letters in steel enamel, swaying and leaning
+ * toward the pointer (see scene.tsx). The flat SVG holds its place (and
+ * shows until the scene is up, or if WebGL isn't available); the canvas sits
+ * centered over it, larger so the turning letters never clip.
  */
 export function NameLogo3D() {
   const reduced = useReducedMotion() ?? false;
@@ -70,13 +66,8 @@ export function NameLogo3D() {
         aria-hidden
         className={`pointer-events-none absolute top-1/2 left-1/2 h-(--phone-canvas-h) w-(--phone-canvas-w) -translate-1/2 transition-opacity duration-300 sm:h-(--canvas-h) sm:w-(--canvas-w) ${ready ? "" : "opacity-0"}`}
       >
-        {/* A narrow view (near face-on, no stretching) and supersampling keep
-            the pixel font's small steps clean as it turns. */}
         <Scene
-          look="enamel"
           logoHeight={phone ? PHONE_LOGO_HEIGHT : LOGO_HEIGHT}
-          fov={HEADER_FOV}
-          supersample
           reduced={reduced}
           onReady={onReady}
         />
