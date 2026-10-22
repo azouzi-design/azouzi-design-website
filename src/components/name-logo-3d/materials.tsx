@@ -2,6 +2,10 @@
 
 import type { Look } from "./looks";
 
+/** The header logo's steel grey (NameLogo3D darkens its flat stand-in to
+ * match). */
+export const ENAMEL_COLOR = "#8c8c8c";
+
 /** The surface a look asks for. */
 export function LookMaterial({ look, opacity = 1 }: { look: Look; opacity?: number }) {
   const fade = opacity < 1 ? { transparent: true, opacity } : {};
@@ -23,6 +27,19 @@ export function LookMaterial({ look, opacity = 1 }: { look: Look; opacity?: numb
           roughness={0.3}
           clearcoat={1}
           clearcoatRoughness={0.05}
+          {...fade}
+        />
+      );
+    case "enamel":
+      // Dark grey, part metal, under a glossy clear coat: reads as steel, but
+      // not so metallic that walls turned from the light go black.
+      return (
+        <meshPhysicalMaterial
+          color={ENAMEL_COLOR}
+          metalness={0.55}
+          roughness={0.3}
+          clearcoat={1}
+          clearcoatRoughness={0}
           {...fade}
         />
       );

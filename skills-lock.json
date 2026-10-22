@@ -12,6 +12,12 @@
       "sourceType": "github",
       "skillPath": "skills/pr-lens/SKILL.md",
       "computedHash": "1895ff90ab4466c85a870062ea6999d39f892bf8427a966331e9b65480353b29"
+    },
+    "threejs-materials": {
+      "source": "cloudai-x/threejs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/threejs-materials/SKILL.md",
+      "computedHash": "8dbeb3cc26e0825e0bb6857bcdab04d997a31d8a2d685d850cdfce98df4c875d"
     }
   }
 }

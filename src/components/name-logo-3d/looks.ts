@@ -1,6 +1,5 @@
-// Visual directions for the 3D name logo. The header uses "matte"; the
-// /concept/logo page shows them all, newest round first. Plain data, so a
-// page can list them without loading three.js.
+// Visual directions for the 3D name logo, from the rounds of exploration.
+// The header uses "enamel".
 
 export type Look = {
   id: string;
@@ -8,7 +7,7 @@ export type Look = {
   note: string;
   /** Which round of exploration it came from (the page groups by it). */
   round: number;
-  material: "matte" | "chrome" | "ink" | "clay" | "prism" | "paper" | "acrylic";
+  material: "matte" | "chrome" | "ink" | "clay" | "prism" | "paper" | "acrylic" | "enamel";
   /** solid: extruded letters. wire: their edges only. layers: thin copies
    * stacked behind the face. voxels: one block per pixel of the artwork.
    * letters: each letter its own piece (see `letters`). tiles: the pixel grid
@@ -38,6 +37,21 @@ export type Look = {
 };
 
 export const LOOKS: Look[] = [
+  // Round 3
+  {
+    id: "enamel",
+    name: "Enamel",
+    note: "Steel grey under a glossy clear lacquer, catching light strips. The header logo today.",
+    round: 3,
+    material: "enamel",
+    build: "solid",
+    depth: 4,
+    // No bevel: on a pixel font it rounds every little step, and the gloss
+    // then glints on each one.
+    motion: "lean",
+    env: true,
+  },
+
   // Round 2
   {
     id: "emboss",
@@ -120,7 +134,7 @@ export const LOOKS: Look[] = [
   {
     id: "matte",
     name: "Matte",
-    note: "The header logo today: soft grey, shallow, leans toward the pointer.",
+    note: "Soft grey, shallow, leans toward the pointer (the header's first 3D look).",
     round: 1,
     material: "matte",
     build: "solid",

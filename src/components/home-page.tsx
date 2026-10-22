@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { IntroBlock, ServicesBlock } from "@/components/about-blocks";
 import { Badge } from "@/components/badge/badge";
@@ -21,13 +21,13 @@ import { useScrollBoost } from "@/lib/use-scroll-boost";
 
 // Switcher order, as in the Figma frame. Misc. has its own logo cut at this
 // size; the others reuse the project logo at 16px tall.
-const TABS: { id: string; logo?: string; width?: number }[] = [
+export const TABS: { id: string; logo?: string; width?: number }[] = [
   { id: "misc", logo: "/images/logo-misc-switcher.svg", width: 54.492 },
   { id: "stint" },
   { id: "cynoia" },
   { id: "thunders" },
 ];
-const LOGO_HEIGHT = 16;
+export const LOGO_HEIGHT = 16;
 
 // The edge treatment from dmcg.co: three backdrop blurs, each masked to an
 // overlapping band that sits nearer the edge the stronger it is, under a wash
@@ -104,15 +104,21 @@ function TopBar() {
   );
 }
 
+const TOP_LINKS: { overlay: Overlay; label: string }[] = [
+  { overlay: "about", label: "About & Services" },
+  { overlay: "contact", label: "Contact me" },
+];
+
 /** The two top buttons: About & Services and Contact me, each opening its
- * overlay. */
+ * overlay. From the sm breakpoint up they sit in the top corners; on phones,
+ * where they'd run into the name, they fold into the menu. */
 function TopButtons({ onOpen }: { onOpen: (overlay: Overlay) => void }) {
   return (
     <>
       <button
         type="button"
         onClick={() => onOpen("about")}
-        className={`${outlineButtonClasses} button-appear fixed top-4 left-4 z-50`}
+        className={`${outlineButtonClasses} button-appear fixed top-4 left-4 z-50 max-sm:hidden`}
         style={appearAfter(0)}
       >
         About &amp; Services
@@ -120,12 +126,80 @@ function TopButtons({ onOpen }: { onOpen: (overlay: Overlay) => void }) {
       <button
         type="button"
         onClick={() => onOpen("contact")}
-        className={`${outlineButtonClasses} button-appear fixed top-4 right-4 z-50`}
+        className={`${outlineButtonClasses} button-appear fixed top-4 right-4 z-50 max-sm:hidden`}
         style={appearAfter(1)}
       >
         Contact me
       </button>
+      <TopMenu onOpen={onOpen} />
     </>
+  );
+}
+
+/** Phones: a square menu button (top-right) whose panel drops below it with
+ * the two top buttons' links. A tap outside, Escape or a pick closes it. */
+function TopMenu({ onOpen }: { onOpen: (overlay: Overlay) => void }) {
+  const [open, setOpen] = useState(false);
+  const reduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (event: PointerEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="fixed top-4 right-4 z-50 sm:hidden">
+      <button
+        type="button"
+        aria-label="Menu"
+        aria-expanded={open}
+        aria-controls="top-menu"
+        onClick={() => setOpen((value) => !value)}
+        className={`${outlineButtonClasses} button-appear w-10 px-0 aria-expanded:bg-[color-mix(in_srgb,var(--ds-background-100),var(--ds-gray-1000)_3%)]`}
+        style={appearAfter(0)}
+      >
+        <img src="/icons/bars-two.svg" alt="" width={18} height={18} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            id="top-menu"
+            // Grows from under the button, with the site's blur-in curve.
+            className="absolute top-12 right-0 flex w-max origin-top-right flex-col rounded-[16px] border border-stroke bg-background-100 p-1"
+            initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -4, filter: "blur(4px)" }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+            exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -4, filter: "blur(4px)" }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {TOP_LINKS.map(({ overlay, label }) => (
+              <button
+                key={overlay}
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  onOpen(overlay);
+                }}
+                className="flex h-10 cursor-pointer items-center rounded-[12px] px-3 text-[15px] leading-[normal] font-medium tracking-[-0.15px] whitespace-nowrap text-gray-1000 transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--ds-background-100),var(--ds-gray-1000)_3%)] active:bg-[color-mix(in_srgb,var(--ds-background-100),var(--ds-gray-1000)_5%)]"
+              >
+                {label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -178,11 +252,13 @@ function OverlayShell({
         type="button"
         onClick={onClose}
         autoFocus
-        className={`${outlineButtonClasses} button-appear fixed top-4 left-4 z-10`}
+        aria-label="Return Home"
+        className={`${outlineButtonClasses} button-appear fixed top-4 left-4 z-10 max-sm:w-10 max-sm:px-0`}
         style={appearAfter(0)}
       >
         <img src="/icons/arrow-redo-down-forward.svg" alt="" width={18} height={18} />
-        Return Home
+        {/* Icon only on phones, so it clears the name. */}
+        <span className="max-sm:hidden">Return Home</span>
       </button>
       {children}
     </motion.div>
@@ -215,14 +291,14 @@ function ContactContent() {
 }
 
 /** The name, centered at the top, level with the buttons' middle (16px +
- * half their 40px, less half its own 20px). On phones it sits under them.
+ * half their 40px, less half its own height: 22px, or 21px on phones).
  * `raised` puts it above an overlay (About), so it stays put and sharp. */
 function Logo({ raised }: { raised: boolean }) {
   return (
     <Link
       href="/"
       aria-label="Ahmed A. Azouzi, home"
-      className={`fixed top-16 left-1/2 -translate-x-1/2 md:top-[26px] ${raised ? "z-[70]" : "z-50"}`}
+      className={`fixed top-[25.5px] left-1/2 -translate-x-1/2 sm:top-[25px] ${raised ? "z-[70]" : "z-50"}`}
     >
       <h1 className="sr-only">Ahmed A. Azouzi</h1>
       <NameLogo3D />
@@ -254,11 +330,14 @@ function TabLogo({ project, logo, width }: { project: Project; logo?: string; wi
 // Wheel and trackpad scrolling go this many times as far (use-scroll-boost).
 const SCROLL_BOOST = 1.7;
 
+// Within this many px of the page's end, the bar shows whichever way you scroll.
+const END_MARGIN = 40;
+
 // Scrolled this far (px) in one direction before the bar reacts.
 const SCROLL_THRESHOLD = 6;
 
 /** True while the page is being scrolled down (past the very top); false as
- * soon as it scrolls back up. */
+ * soon as it scrolls back up, or reaches the end of the page. */
 function useHideOnScrollDown() {
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
@@ -267,7 +346,9 @@ function useHideOnScrollDown() {
       const y = window.scrollY;
       const moved = y - last;
       if (Math.abs(moved) < SCROLL_THRESHOLD) return;
-      setHidden(moved > 0 && y > 40);
+      // Back at the end of the page too, even while still scrolling down.
+      const atEnd = y + window.innerHeight >= document.documentElement.scrollHeight - END_MARGIN;
+      setHidden(moved > 0 && y > 40 && !atEnd);
       last = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -293,7 +374,7 @@ function BottomBar({
           a quick ease-out in (the site's blur-in curve), a faster ease-in
           out. No overshoot. */}
       <motion.div
-        className="relative flex justify-center px-5 pt-8 pb-7"
+        className="relative flex justify-center px-3 pt-8 pb-7 sm:px-5"
         initial={false}
         animate={
           reduced

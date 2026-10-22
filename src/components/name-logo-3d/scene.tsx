@@ -26,17 +26,17 @@ const DAMPING = 4;
 const SHADOW_GAP = 14;
 
 /** Keeps one scene unit equal to one CSS pixel at the logo's front face,
- * whatever size the canvas is. */
-function PixelCamera() {
+ * whatever size the canvas is, for a camera with field of view `fov`. */
+function PixelCamera({ fov }: { fov: number }) {
   const get = useThree((state) => state.get);
   const height = useThree((state) => state.size.height);
   useLayoutEffect(() => {
     const camera = get().camera as THREE.PerspectiveCamera;
-    const distance = height / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+    const distance = height / 2 / Math.tan(THREE.MathUtils.degToRad(fov / 2));
     camera.position.set(0, 0, distance);
     camera.far = distance * 3;
     camera.updateProjectionMatrix();
-  }, [get, height]);
+  }, [get, height, fov]);
   return null;
 }
 
@@ -184,6 +184,30 @@ function ShadowCatcher({ reduced }: { reduced: boolean }) {
 }
 
 function Lights({ look, reduced }: { look: Look; reduced: boolean }) {
+  if (look.material === "enamel") {
+    // Lamps bright enough that
+    // the face keeps its own color, strips for the lacquer to catch, and only
+    // a dim panel behind the camera, which a face-on clear coat mirrors.
+    return (
+      <>
+        <ambientLight intensity={1} />
+        <directionalLight position={[-60, 80, 120]} intensity={1.3} />
+        {/* A soft lamp from the lower right, for the walls facing away from
+            the key. */}
+        <directionalLight position={[80, -70, 60]} intensity={0.9} />
+        <Environment resolution={128} environmentIntensity={1.5}>
+          <Lightformer form="rect" intensity={0.3} position={[0, 0, 10]} scale={[12, 6, 1]} />
+          <Lightformer form="rect" intensity={3} position={[0, 5, 5]} scale={[10, 2, 1]} />
+          <Lightformer form="rect" intensity={1.5} position={[-6, 0, 3]} scale={[6, 1, 1]} />
+          {/* Soft fills below and to the right: the metal walls facing that
+              way reflect these instead of empty dark, so they read as
+              shaded steel, not black. */}
+          <Lightformer form="rect" intensity={2} position={[0, -5, 4]} scale={[10, 3, 1]} />
+          <Lightformer form="rect" intensity={1.6} position={[6, 0, 3]} scale={[6, 3, 1]} />
+        </Environment>
+      </>
+    );
+  }
   if (look.env) {
     // Studio strips for reflective and clear looks, so they have something
     // to mirror.
@@ -226,28 +250,35 @@ function Lights({ look, reduced }: { look: Look; reduced: boolean }) {
 
 const noop = () => {};
 
-/** The name logo in 3D, filling its parent. `logoHeight` is in px. */
+/** The name logo in 3D, filling its parent. `logoHeight` is in px. `fov`
+ * narrows the camera (less perspective); `supersample` renders at 3x the
+ * screen's resolution (up to 6x) and lets the browser scale it down, for
+ * smoother edges in motion. */
 export default function NameLogoScene({
   look: id = "matte",
   logoHeight,
   reduced,
   onReady = noop,
+  fov = FOV,
+  supersample = false,
 }: {
   look?: string;
   logoHeight: number;
   reduced: boolean;
   onReady?: () => void;
+  fov?: number;
+  supersample?: boolean;
 }) {
   const look = LOOKS.find((candidate) => candidate.id === id) ?? LOOKS[0];
   return (
     <Canvas
-      camera={{ fov: FOV, near: 1 }}
-      dpr={[1, 2]}
+      camera={{ fov, near: 1 }}
+      dpr={supersample ? Math.min(6, window.devicePixelRatio * 3) : [1, 2]}
       gl={{ alpha: true, antialias: true }}
       // Variance shadow maps honour the light's blur radius, for a soft shadow.
       shadows={look.shadow ? "variance" : false}
     >
-      <PixelCamera />
+      <PixelCamera fov={fov} />
       <Lights look={look} reduced={reduced} />
       <Logo
         look={look}
