@@ -36,18 +36,30 @@ It's mounted in the **Contact overlay** of the home page
   looks like a white strip on phones.
 
 The defaults (`strapScale` 1, not immediate, full-bleed) are the original
-home-page behaviour, below a white page card that no longer exists.
+home-page behaviour, below a white page card that no longer exists. No page
+uses them now; the Contact overlay is the only place the card appears.
+
+The overlay (`OverlayShell` in `home-page.tsx`) is a `fixed inset-0` layer
+with its own vertical scroll, a 90% page-colour veil and a full-screen
+`backdrop-blur-[24px]` over the gallery behind it. It fades in over 0.3s, and
+the page behind it doesn't scroll while it's open.
 
 Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194).
 
 ## Lifecycle
 
 1. **The section reserves its space right away.** The `<section id="business-card">`
-   gets a fixed `height` from `getCardLayout(portrait).areaHeightPx` (strap +
-   card + 200px bottom margin), so the page never shifts when the scene loads.
-2. **The scene is built late, on purpose.** Three.js, the Rapier WASM, the
-   textures and the shader compiles are heavy enough to make the page-load
-   animations stutter. `Lanyard` is only mounted once **either**:
+   gets a fixed `height` from `getCardLayout(portrait, strapScale).areaHeightPx`
+   (strap + card + 200px bottom margin), so nothing shifts when the scene
+   loads. In the Contact overlay that's 830px on desktop and 686px on phones,
+   so on short screens the overlay scrolls a little.
+2. **When the scene is built.** In the Contact overlay (`immediate`) it's
+   built as soon as the overlay opens, at the browser's next idle moment
+   (`requestIdleCallback`, at most 1s; straight away in older Safari). So
+   every open pays for three.js setup, the Rapier WASM world, the textures
+   and the shader compiles. Without `immediate` (the original home-page
+   placement) the build waits, because that work made the page-load
+   animations stutter. `Lanyard` is then only mounted once **either**:
    - 4s have passed since page load (`INTRO_END_MS`) and the browser is idle
      (`requestIdleCallback`, with a 1s timeout; older Safari doesn't have it
      and builds straight away), **or**
@@ -55,21 +67,25 @@ Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194)
 
    `lowPower` is read at that moment (`isLowPower()`) and stays fixed for the
    visit.
-3. **The entrance plays once per visit, the first time the badge is seen.**
-   An IntersectionObserver (triggering once 200px of the section is on
-   screen, `TRIGGER_PX`) bumps `playKey` the first time only.
-   `<Physics key={playKey-portrait}>` then remounts, so all the bodies spawn
-   at their start pose and the card is thrown in. Later scroll-ins only set
-   `active` again, and the scene resumes where it was paused, usually at rest.
-   Until that first scroll-in the scene sits paused at its start pose, out of
-   view. The "played" flag lives in the badge, so
-   leaving the home page and coming back (which remounts it) or reloading
-   plays the entrance once more. Crossing the phone/desktop breakpoint also remounts `Physics` (its
-   key includes `portrait`), so the throw plays again then. That's intended:
-   the card's size changes.
+3. **The entrance plays each time the Contact overlay opens.** Opening the
+   overlay mounts the badge and closing it unmounts it
+   (`overlay === "contact" && …` in `home-page.tsx`), so every open is a
+   fresh scene. An IntersectionObserver (the viewport is its root, which
+   works because the overlay covers the viewport; it fires once 200px of the
+   section is on screen, `TRIGGER_PX`) bumps `playKey` the first time the
+   badge is seen in that mount. `<Physics key={playKey-portrait}>` then
+   remounts, so all the bodies spawn at their start pose and the card is
+   thrown in. The badge sits at the top of the overlay, so this happens
+   straight away. Within one open, scrolling the overlay away and back
+   doesn't replay it: the `played` flag is per mount, and the scene resumes
+   where it was paused. Crossing the phone/desktop breakpoint also remounts
+   `Physics` (its key includes `portrait`), so the throw plays again then.
+   That's intended: the card's size changes.
 4. **Nothing runs while off-screen.** `active` false sets the canvas
    `frameloop="demand"` **and** `Physics paused`. Both are needed: a swinging
    card makes physics request new frames, which would keep rendering unseen.
+   In the overlay this only applies when it's scrolled far enough to hide
+   the card. Closing the overlay unmounts the whole scene.
 
 ## Layout and coordinates
 
@@ -80,10 +96,13 @@ Design source: the Figma frames "card-front" (825:110) and "card-back" (825:194)
   edge of the canvas**.
 - **Two layouts**, picked by `(max-width: 460px)` (`PORTRAIT_MAX_WIDTH`):
 
-  | | Card (px) | Strap segment | Strap total | Throw spread |
-  | --- | --- | --- | --- | --- |
-  | Landscape (desktop/tablet) | 428 × 245 (3.5 × 2 in ratio) | 0.5 u | 285px | 1 |
-  | Portrait (phones) | 348 × 232 | 0.3 u (40% shorter) | 171px | 0.4 |
+  | | Card (px) | Strap segment | Strap total | Strap in Contact (× 1.15) | Throw spread |
+  | --- | --- | --- | --- | --- | --- |
+  | Landscape (desktop/tablet) | 428 × 245 (3.5 × 2 in ratio) | 0.5 u | 285px | 0.575 u, 328px | 1 |
+  | Portrait (phones) | 348 × 232 | 0.3 u (40% shorter) | 171px | 0.345 u, 197px | 0.4 |
+
+  `strapScale` multiplies the segment length (`getCardLayout`); the
+  "Strap total" column is at scale 1.
 
 - Every size comes from `lanyard-layout.ts`. Changing `PORTRAIT_H`,
   `PORTRAIT_W` or the segment length automatically updates the canvas
@@ -193,9 +212,9 @@ rejects**. Don't change it back to `document.fonts.load(fullFontStack)`:
   **Don't remove them:** without them the card stays grabbed and jumps to
   wherever the finger moves next. This was the "too sensitive, flies
   off-screen" phone bug.
-- The canvas doesn't set `touch-action`, so page scrolling over the badge
-  still works on phones. Vertical swipes scroll the page; horizontal ones
-  can drag the card.
+- The canvas doesn't set `touch-action`, so scrolling over the badge still
+  works on phones. Vertical swipes scroll the Contact overlay (when it's
+  taller than the screen); horizontal ones can drag the card.
 - Cursor: `grab` / `grabbing` / `pointer` over a link, set on `body` while
   hovered.
 
@@ -215,6 +234,10 @@ at a low-end device (Save-Data, ≤ 2 GB memory, ≤ 2 cores), or if more than
 remaining cost is the `meshPhysicalMaterial` clearcoat and the VSM shadow;
 those are the next things to cut if phones lag again.
 
+In the Contact overlay the canvas also sits on top of the overlay's
+full-screen `backdrop-blur-[24px]` (see above), which the browser composites
+together with the canvas.
+
 ## Look
 
 The settings are in `SURFACE` in `card-surface.ts`: corner radius (in px),
@@ -229,12 +252,12 @@ every visit.
 | --- | --- |
 | Phone card size | `PORTRAIT_W` / `PORTRAIT_H` in `lanyard-layout.ts` |
 | Desktop card size | `LANDSCAPE_W` (height follows the 1.75 ratio) |
-| Strap length | `SEGMENT` (desktop) / `PORTRAIT_SEGMENT` (phones) |
+| Strap length | `SEGMENT` (desktop) / `PORTRAIT_SEGMENT` (phones); in Contact, also `CONTACT_STRAP_SCALE` in `home-page.tsx` |
 | Phone/desktop breakpoint | `PORTRAIT_MAX_WIDTH` |
 | Space below the card | `BOTTOM_MARGIN_PX` |
 | How far it's thrown in from | `spread` in `Band` |
 | Contact links / text on the card | `contactBlocks` / `createBackFace` in `card-faces.ts` |
-| When the scene starts loading | `INTRO_END_MS`, `PRELOAD_MARGIN_PX` in `badge.tsx` |
+| When the scene starts loading | `immediate` prop; without it, `INTRO_END_MS` and `PRELOAD_MARGIN_PX` in `badge.tsx` |
 | How far into view the entrance starts | `TRIGGER_PX` in `badge.tsx` |
 | Material / shadow look | `SURFACE` in `card-surface.ts` |
 
@@ -270,4 +293,5 @@ every visit.
   a link tap opens and a drag starting on a link doesn't; a desktop link
   click opens a new tab with an ad blocker on; moving off the card resets
   the cursor and hides the link overlay; the card on phones settles fully on
-  screen; nothing lags while scrolling past.
+  screen; Return Home and Escape close the overlay; nothing lags when the
+  overlay opens or while dragging.
