@@ -17,22 +17,26 @@ const SRC = "/images/name-logo.svg";
 // they turn (a wide view would stretch the pixel font's small steps).
 const FOV = 6;
 // Extrusion depth, in the artwork's units (it is 16 tall).
-const DEPTH = 4;
+const DEPTH = 6;
 // The logo never takes more than this share of the canvas width.
 const MAX_WIDTH_SHARE = 0.8;
 
 // A slow idle sway, and a lean toward the pointer anywhere on the page
 // (radians at the screen's edges).
-const SWAY = 0.22;
+const SWAY = 0.15;
 const SWAY_SPEED = 0.5;
-const LEAN = { x: 0.35, y: 0.5 };
+const LEAN = { x: 0.18, y: 0.28 };
 const DAMPING = 4;
 // Held still at this angle with reduced motion.
-const RESTING: [number, number, number] = [0.12, -0.25, 0];
+const RESTING: [number, number, number] = [0.06, -0.12, 0];
 
 // Dark grey, part metal: reads as steel, but not so metallic that walls
 // turned from the light go black.
-const STEEL = "#8c8c8c";
+const STEEL = "#666666";
+// The walls in a lighter, less metallic steel: in the face's, the walls
+// turned from the light read near black against the grey front.
+const WALL_STEEL = "#7a7a7a";
+const WALL_METALNESS = 0.3;
 
 /** Window-wide pointer position, -1..1 on each axis from the screen center. */
 function usePointer() {
@@ -121,9 +125,20 @@ function Logo({
         scale={[scale, -scale, -scale]}
         position={[(-SVG_WIDTH * scale) / 2, (SVG_HEIGHT * scale) / 2, 0]}
       >
+        {/* The extrusion's groups: 0 is the front and back faces, 1 the
+            walls. */}
         <meshPhysicalMaterial
+          attach="material-0"
           color={STEEL}
           metalness={0.55}
+          roughness={0.3}
+          clearcoat={1}
+          clearcoatRoughness={0}
+        />
+        <meshPhysicalMaterial
+          attach="material-1"
+          color={WALL_STEEL}
+          metalness={WALL_METALNESS}
           roughness={0.3}
           clearcoat={1}
           clearcoatRoughness={0}
@@ -159,8 +174,10 @@ function Lights() {
 }
 
 /** The name logo in 3D, filling its parent; `logoHeight` is in px. Renders at
- * 3x the screen's resolution (up to 6x) and lets the browser scale it down,
- * so the pixel font's steps stay smooth as it turns. */
+ * exactly 2x the screen's resolution and lets the browser scale it down, so
+ * the pixel font's steps stay smooth as it turns. Exactly 2x: the browser's
+ * bilinear downscale averages every pixel only at 2:1 (at 3:1 it skips most
+ * of them and the edges shimmer). */
 export default function NameLogoScene({
   logoHeight,
   reduced,
@@ -173,7 +190,7 @@ export default function NameLogoScene({
   return (
     <Canvas
       camera={{ fov: FOV, near: 1 }}
-      dpr={Math.min(6, window.devicePixelRatio * 3)}
+      dpr={window.devicePixelRatio * 2}
       gl={{ alpha: true, antialias: true }}
       // The canvas is wider than the name and would otherwise take taps meant
       // for the buttons beside it (the pointer is read window-wide instead).

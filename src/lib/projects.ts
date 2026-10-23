@@ -156,7 +156,7 @@ export const projects: Project[] = [
     brand: "#0047BB",
     paragraphs: [
       "Thunders is a Paris-based AI-powered platform that automates software testing through autonomous agents. Founded by Karim Jouini and Jihed Othmani, the team behind Expensya (acquired for $120M+).",
-      "I worked for close to 1 year as part of the founding team, designing the product and website from 0\u00a0→\u00a01.",
+      "I worked for close to 1 year as part of the founding team, designing everything from 0\u00a0→\u00a01.",
     ],
     sections: [
       {

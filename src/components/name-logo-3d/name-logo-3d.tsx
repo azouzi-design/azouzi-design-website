@@ -60,7 +60,7 @@ export function NameLogo3D() {
         height={LOGO_HEIGHT}
         // The artwork is a light grey; darkened to the 3D logo's steel so the
         // handover doesn't jump.
-        className={`block size-full brightness-[0.72] transition-opacity duration-300 ${ready ? "opacity-0" : ""}`}
+        className={`block size-full brightness-[0.52] transition-opacity duration-300 ${ready ? "opacity-0" : ""}`}
       />
       <span
         aria-hidden
