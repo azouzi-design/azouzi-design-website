@@ -9,6 +9,7 @@ import {
   CuboidCollider,
   Physics,
   RigidBody,
+  useBeforePhysicsStep,
   useRopeJoint,
   useSphericalJoint,
   type RapierRigidBody,
@@ -235,6 +236,8 @@ type BandProps = {
   still?: boolean;
   /** TEMP (?badge=norelief): no satin relief normal map. */
   noRelief?: boolean;
+  /** TEMP (?badge=steady): motion independent of frame timing. */
+  steady?: boolean;
 };
 
 // Everything heavy (textures, geometry) lives in Lanyard so Band can be
@@ -251,6 +254,7 @@ function Band({
   noHighlight = false,
   still = false,
   noRelief = false,
+  steady = false,
 }: BandProps) {
   const { w: CARD_W, h: CARD_H, segment: SEGMENT } = layout;
   // How far right of the anchor the card is thrown in from. Narrower on
@@ -354,6 +358,15 @@ function Band({
     };
   }, [dragged]);
 
+  // TEMP (?badge=steady): the turn-back nudge once per fixed physics step, so
+  // uneven frames can't make it uneven.
+  useBeforePhysicsStep(() => {
+    if (!steady || !card.current) return;
+    const v = card.current.angvel();
+    const r = card.current.rotation();
+    card.current.setAngvel({ x: v.x, y: v.y - r.y * 0.25, z: v.z }, true);
+  });
+
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], SEGMENT]);
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], SEGMENT]);
   useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], SEGMENT]);
@@ -428,7 +441,8 @@ function Band({
       // Capped at 1: on slow frames (phones) it would overshoot and whip.
       body.lerped.lerp(
         body.translation(),
-        Math.min(1, delta * (minSpeed + distance * (maxSpeed - minSpeed))),
+        // TEMP (?badge=steady): a fixed step instead of the frame's duration.
+        Math.min(1, (steady ? 1 / 120 : delta) * (minSpeed + distance * (maxSpeed - minSpeed))),
       );
     });
     // Top (anchor) to bottom (card), so the text reads downwards.
@@ -445,10 +459,13 @@ function Band({
       updateRibbon(ribbon, curve.getSpacedPoints(STRAP_POINTS), tileLength);
     }
 
-    // Gently turn the card back to face the viewer.
+    // Gently turn the card back to face the viewer. (With ?badge=steady this
+    // runs per physics step instead, below.)
     ang.copy(card.current.angvel());
     rot.copy(card.current.rotation());
-    if (!still) {
+    if (steady) {
+      // done in useBeforePhysicsStep
+    } else if (!still) {
       card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z }, true);
     } else if (!card.current.isSleeping()) {
       // TEMP (?badge=still): same turn-back, but without waking the body.
@@ -782,7 +799,7 @@ export default function Lanyard({
         <Physics
           key={`${playKey}-${portrait}`}
           gravity={[0, -40, 0]}
-          timeStep={1 / 60}
+          timeStep={test.includes("steady") ? 1 / 120 : 1 / 60}
           interpolate
           paused={!active}
         >
@@ -796,6 +813,7 @@ export default function Lanyard({
             noHighlight={test.includes("nohl")}
             still={test.includes("still")}
             noRelief={test.includes("norelief")}
+            steady={test.includes("steady")}
           />
         </Physics>
         <Environment blur={0.75} environmentIntensity={SURFACE.reflections}>
