@@ -52,8 +52,8 @@ type Segment = RapierRigidBody & { lerped?: THREE.Vector3 };
 
 async function drawStrap(): Promise<HTMLCanvasElement> {
   const size = STRAP_TEXTURE_H * 0.42;
-  const font = `600 ${size}px ${fontFamily()}`;
-  await loadFont(600, size);
+  const font = `440 ${size}px ${fontFamily()}`;
+  await loadFont(440, size);
   const measure = document.createElement("canvas").getContext("2d")!;
   measure.font = font;
   const gap = STRAP_TEXTURE_H * 0.9;

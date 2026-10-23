@@ -151,13 +151,13 @@ export type CardFace = {
 
 export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
   const { pxW: FACE_W, pxH: FACE_H } = layout;
-  await Promise.all([loadFont(400, 14), loadFont(500, 14), loadFont(500, 10)]);
+  await Promise.all([loadFont(440, 14), loadFont(440, 10)]);
   const decorator = await loadImage("/images/card-front-decorator.svg");
   const { canvas, ctx } = createCanvas(layout);
 
   // Layout: contact links span the card between the edge margins.
   const contentW = FACE_W - 2 * EDGE;
-  setFont(ctx, 500, 14, -0.14);
+  setFont(ctx, 440, 14, -0.14);
   const line = normalLineHeight(ctx);
   const rowGap = 6;
   const blockGap = 20;
@@ -201,7 +201,7 @@ export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
     for (const row of rows) {
       const baseline = row.y + line.ascent;
 
-      setFont(ctx, 500, 14, -0.14);
+      setFont(ctx, 440, 14, -0.14);
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
       ctx.fillStyle = WHITE;
@@ -209,7 +209,7 @@ export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
 
       if (row.badge) {
         const labelW = ctx.measureText(row.label).width;
-        setFont(ctx, 500, 10, -0.05);
+        setFont(ctx, 440, 10, -0.05);
         const badgeLine = normalLineHeight(ctx);
         const textW = ctx.measureText(row.badge).width;
         const bw = textW + 8;
@@ -227,7 +227,7 @@ export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
         ctx.restore();
       }
 
-      setFont(ctx, 400, 14, -0.14);
+      setFont(ctx, 440, 14, -0.14);
       ctx.textAlign = "right";
       ctx.fillStyle = GRAY_600;
       ctx.fillText(row.value, right, baseline);
@@ -242,7 +242,7 @@ export async function createFrontFace(layout: CardLayout): Promise<CardFace> {
 
 export async function createBackFace(layout: CardLayout): Promise<CardFace> {
   const { pxW: FACE_W, pxH: FACE_H } = layout;
-  await loadFont(400, 14);
+  await loadFont(440, 14);
   const decorator = await loadImage("/images/card-back-decorator.svg");
   const { canvas, ctx } = createCanvas(layout);
   // The name graphic spans the card width, keeping its 404 × 38 proportions.
@@ -254,7 +254,7 @@ export async function createBackFace(layout: CardLayout): Promise<CardFace> {
     ctx.fillRect(0, 0, FACE_W, FACE_H);
     ctx.drawImage(decorator, EDGE, FACE_H - EDGE - decoratorH, decoratorW, decoratorH);
 
-    setFont(ctx, 400, 14, -0.14);
+    setFont(ctx, 440, 14, -0.14);
     const line = normalLineHeight(ctx);
     ctx.fillStyle = WHITE;
     ctx.textAlign = "left";
