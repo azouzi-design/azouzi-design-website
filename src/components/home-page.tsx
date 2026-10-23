@@ -266,12 +266,12 @@ function OverlayShell({
 }
 
 /** About & Services: the profile photo (120px), the intro, then the services,
- * centered in one column. The name stays visible above this overlay, and
- * the column starts 48px below it (the name ends at 47px), the same as the
- * gaps between photo, intro and services, so all four are evenly spaced. */
+ * 48px apart in one column, centered in the viewport. The name stays visible
+ * above this overlay; on short screens the column scrolls and starts 48px
+ * below it (the name ends at 47px). */
 function AboutContent() {
   return (
-    <div className="flex justify-center px-4 pt-[95px] pb-16 text-center text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
+    <div className="flex min-h-full items-center justify-center px-4 py-[95px] text-center text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
       <div className="flex w-[440px] max-w-full flex-col items-center gap-12">
         <ProfilePhoto size={120} />
         <IntroBlock />
