@@ -188,17 +188,25 @@ export function SoftBlurIn({
   );
 }
 
-export function SoftBlurItem({ children }: { children: ReactNode }) {
+export function SoftBlurItem({
+  children,
+  text = true,
+}: {
+  children: ReactNode;
+  /** False for a photo or image: on phones it fades and rises as a whole
+   * instead of playing line by line. */
+  text?: boolean;
+}) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const stopLines = useRef<(() => void) | null>(null);
   // Phones: the item shows at once, then its lines play. Leaving the screen
   // stops them, so they replay on the way back.
-  const lines = !reduced && isPhone();
+  const lines = text && !reduced && isPhone();
   return (
     <motion.div
       ref={ref}
-      variants={blurVariants(reduced, {}, true)}
+      variants={blurVariants(reduced, {}, text)}
       onUpdate={
         lines
           ? (latest) => {

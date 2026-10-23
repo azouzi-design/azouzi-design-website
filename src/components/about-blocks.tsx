@@ -1,8 +1,9 @@
 import { CallToAction } from "@/components/call-to-action";
+import { ProfilePhoto } from "@/components/profile-photo";
 import { SoftBlurIn, SoftBlurItem } from "@/components/soft-blur-in";
 
-// The two text blocks of the home page's About & Services overlay: who I am,
-// and how I work, each one paragraph of phrases; then the call to action.
+// The home page's About & Services overlay: my photo, who I am and how I
+// work (each one paragraph of phrases), then the call to action.
 
 const intro = [
   "Senior Product Designer (+5 years designing for startups)",
@@ -26,32 +27,22 @@ function Phrases({ phrases }: { phrases: string[] }) {
   return <p>{phrases.join(" ⏣ ")}</p>;
 }
 
-/** The intro: role, focus, background. */
-export function IntroBlock({ sound = false }: { sound?: boolean }) {
+/** The About & Services column: the profile photo (120px), the intro, the
+ * services and the call to action, 40px apart. They play as one sequence,
+ * like a project's intro: each blurs in a beat after the one before (on
+ * phones, the photo fades and rises and the text plays line by line). */
+export function AboutBlocks() {
   return (
-    <SoftBlurIn sound={sound}>
+    <SoftBlurIn className="flex w-[440px] max-w-full flex-col items-center gap-10">
+      <SoftBlurItem text={false}>
+        <ProfilePhoto size={120} />
+      </SoftBlurItem>
       <SoftBlurItem>
         <Phrases phrases={intro} />
       </SoftBlurItem>
-    </SoftBlurIn>
-  );
-}
-
-/** The services. */
-export function ServicesBlock({ sound = false }: { sound?: boolean }) {
-  return (
-    <SoftBlurIn sound={sound}>
       <SoftBlurItem>
         <Phrases phrases={services} />
       </SoftBlurItem>
-    </SoftBlurIn>
-  );
-}
-
-/** The call to action: Book a Call or Copy Email, and the price badge. */
-export function CallToActionBlock({ sound = false }: { sound?: boolean }) {
-  return (
-    <SoftBlurIn sound={sound}>
       <SoftBlurItem>
         <CallToAction />
       </SoftBlurItem>

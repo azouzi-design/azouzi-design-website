@@ -3,9 +3,8 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { CallToActionBlock, IntroBlock, ServicesBlock } from "@/components/about-blocks";
+import { AboutBlocks } from "@/components/about-blocks";
 import { Badge } from "@/components/badge/badge";
-import { ProfilePhoto } from "@/components/profile-photo";
 import { MediaEffects } from "@/components/media-effects/media-effects";
 import { NameLogo3D } from "@/components/name-logo-3d/name-logo-3d";
 import { ProjectBody } from "@/components/project-body";
@@ -272,12 +271,7 @@ function OverlayShell({
 function AboutContent() {
   return (
     <div className="flex min-h-full items-center justify-center px-4 py-[87px] text-center text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
-      <div className="flex w-[440px] max-w-full flex-col items-center gap-10">
-        <ProfilePhoto size={120} />
-        <IntroBlock />
-        <ServicesBlock />
-        <CallToActionBlock />
-      </div>
+      <AboutBlocks />
     </div>
   );
 }
