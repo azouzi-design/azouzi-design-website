@@ -287,7 +287,16 @@ function ContactContent() {
  * `raised` puts it above an overlay (About), so it stays put and sharp.
  * `hidden` fades it out on phones while an overlay is open, where it would
  * run into the Return button. */
-function Logo({ raised, hidden }: { raised: boolean; hidden: boolean }) {
+function Logo({
+  raised,
+  hidden,
+  unmount = false,
+}: {
+  raised: boolean;
+  hidden: boolean;
+  /** TEMP (?badge=nologo): drop the 3D name entirely (testing the card's lag). */
+  unmount?: boolean;
+}) {
   return (
     <Link
       href="/"
@@ -295,7 +304,7 @@ function Logo({ raised, hidden }: { raised: boolean; hidden: boolean }) {
       className={`fixed top-[25.5px] left-1/2 -translate-x-1/2 transition-opacity duration-300 sm:top-[25px] ${raised ? "z-[70]" : "z-50"} ${hidden ? "max-sm:pointer-events-none max-sm:opacity-0" : ""}`}
     >
       <h1 className="sr-only">Ahmed A. Azouzi</h1>
-      <NameLogo3D />
+      {!unmount && <NameLogo3D />}
     </Link>
   );
 }
@@ -465,7 +474,20 @@ export function HomePage({
           </OverlayShell>
         )}
       </AnimatePresence>
-      <Logo raised={overlay === "about"} hidden={overlay !== null} />
+      <Logo
+        raised={overlay === "about"}
+        hidden={overlay !== null}
+        // TEMP (?badge=nologo): no 3D name while Contact is open, to test
+        // whether it causes the card's lag. Only read once Contact is open,
+        // which is always in the browser.
+        unmount={
+          overlay === "contact" &&
+          !!new URLSearchParams(window.location.search)
+            .get("badge")
+            ?.split(",")
+            .includes("nologo")
+        }
+      />
       {/* Clears the bars at either end: their height plus room to breathe. */}
       <main className="px-5 pt-[132px] pb-[168px] text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
         {/* Keyed so the new project plays its blur-in from the start. */}

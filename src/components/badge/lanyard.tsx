@@ -231,6 +231,10 @@ type BandProps = {
   link: HTMLAnchorElement | null;
   /** TEMP (?badge=nohl): hide the row highlight mesh. */
   noHighlight?: boolean;
+  /** TEMP (?badge=still): let the card fall asleep instead of waking it every frame. */
+  still?: boolean;
+  /** TEMP (?badge=norelief): no satin relief normal map. */
+  noRelief?: boolean;
 };
 
 // Everything heavy (textures, geometry) lives in Lanyard so Band can be
@@ -245,6 +249,8 @@ function Band({
   layout,
   link,
   noHighlight = false,
+  still = false,
+  noRelief = false,
 }: BandProps) {
   const { w: CARD_W, h: CARD_H, segment: SEGMENT } = layout;
   // How far right of the anchor the card is thrown in from. Narrower on
@@ -442,7 +448,12 @@ function Band({
     // Gently turn the card back to face the viewer.
     ang.copy(card.current.angvel());
     rot.copy(card.current.rotation());
-    card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z }, true);
+    if (!still) {
+      card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z }, true);
+    } else if (!card.current.isSleeping()) {
+      // TEMP (?badge=still): same turn-back, but without waking the body.
+      card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z }, false);
+    }
 
     // Lay the link overlay over the hovered row's on-screen bounds, every
     // frame, so it follows the card as it swings.
@@ -608,7 +619,7 @@ function Band({
                   emissiveMap={card?.texture}
                   emissive="#ffffff"
                   emissiveIntensity={SURFACE.artworkGlow}
-                  normalMap={cardGeometry.normalMap}
+                  normalMap={noRelief ? null : cardGeometry.normalMap}
                   normalScale={RELIEF_SCALE}
                   roughness={SURFACE.roughness}
                   metalness={SURFACE.metalness}
@@ -783,6 +794,8 @@ export default function Lanyard({
             layout={layout}
             link={link}
             noHighlight={test.includes("nohl")}
+            still={test.includes("still")}
+            noRelief={test.includes("norelief")}
           />
         </Physics>
         <Environment blur={0.75} environmentIntensity={SURFACE.reflections}>

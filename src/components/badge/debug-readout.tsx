@@ -4,6 +4,7 @@
 // stutter on the visitor's own machine. Remove once the lag's cause is known.
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type * as THREE from "three";
 
 type LongFrame = PerformanceEntry & {
@@ -103,13 +104,15 @@ export function DebugReadout({ gl }: { gl: THREE.WebGLRenderer }) {
   }, [gl]);
 
   if (!stats) return null;
-  return (
+  // Into <body>, outside the Contact overlay: inside it, the overlay's
+  // backdrop-filter makes "fixed" relative to the overlay, not the screen.
+  return createPortal(
     <div
       style={{
         position: "fixed",
         left: 8,
         bottom: 8,
-        zIndex: 1000,
+        zIndex: 2147483647,
         maxWidth: "min(560px, calc(100vw - 16px))",
         padding: "8px 10px",
         borderRadius: 8,
@@ -123,6 +126,7 @@ export function DebugReadout({ gl }: { gl: THREE.WebGLRenderer }) {
       {`fps ${stats.fps} · worst frame (5s) ${stats.worst}ms · slow frames ${stats.slow}
 shaders ${stats.programs} · dpr ${stats.dpr} · canvas ${stats.size}
 ${stats.log.join("\n") || "(no events yet)"}`}
-    </div>
+    </div>,
+    document.body,
   );
 }
