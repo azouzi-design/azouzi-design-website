@@ -229,6 +229,8 @@ type BandProps = {
   layout: CardLayout;
   /** Real <a> laid over the hovered link row (see useFrame). */
   link: HTMLAnchorElement | null;
+  /** TEMP (?badge=nohl): hide the row highlight mesh. */
+  noHighlight?: boolean;
 };
 
 // Everything heavy (textures, geometry) lives in Lanyard so Band can be
@@ -242,6 +244,7 @@ function Band({
   cardGeometry,
   layout,
   link,
+  noHighlight = false,
 }: BandProps) {
   const { w: CARD_W, h: CARD_H, segment: SEGMENT } = layout;
   // How far right of the anchor the card is thrown in from. Narrower on
@@ -613,7 +616,7 @@ function Band({
                   clearcoatRoughness={SURFACE.clearcoatRoughness}
                   toneMapped={false}
                 />
-                {highlightGeometry && (
+                {highlightGeometry && !noHighlight && (
                   <mesh
                     geometry={highlightGeometry}
                     // Not hit-testable, or hovering it would hide it again.
@@ -740,10 +743,13 @@ export default function Lanyard({
   // State, not a ref: the scene mounts in R3F's own root, so Band must
   // re-run its setup once the element exists.
   const [link, setLink] = useState<HTMLAnchorElement | null>(null);
-  // TEMP (?badge=debug): live frame/shader readout, see debug-readout.tsx.
-  const [debug] = useState(
-    () => new URLSearchParams(window.location.search).get("badge") === "debug",
+  // TEMP test switches, any combination: ?badge=debug,nohl,nolink.
+  // debug: live frame/shader readout (debug-readout.tsx); nohl: no row
+  // highlight; nolink: no <a> overlay (clicks fall back to window.open).
+  const [test] = useState(
+    () => new URLSearchParams(window.location.search).get("badge")?.split(",") ?? [],
   );
+  const debug = test.includes("debug");
   const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null);
 
   return (
@@ -776,6 +782,7 @@ export default function Lanyard({
             cardGeometry={cardGeometry}
             layout={layout}
             link={link}
+            noHighlight={test.includes("nohl")}
           />
         </Physics>
         <Environment blur={0.75} environmentIntensity={SURFACE.reflections}>
@@ -787,6 +794,7 @@ export default function Lanyard({
       </Canvas>
       {debug && gl && <DebugReadout gl={gl} />}
       {/* Hidden until a link row is hovered; positioned by Band. */}
+      {!test.includes("nolink") && (
       <a
         ref={setLink}
         rel="noopener noreferrer"
@@ -800,6 +808,7 @@ export default function Lanyard({
           cursor: "pointer",
         }}
       />
+      )}
     </div>
   );
 }
