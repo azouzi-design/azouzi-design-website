@@ -35,6 +35,7 @@ import {
   createFaceGeometry,
   createSurfaceNormalMap,
 } from "./card-surface";
+import { DebugReadout } from "./debug-readout";
 
 const STRAP_W = 0.23;
 // Shared, so material props don't change identity on every render.
@@ -739,10 +740,16 @@ export default function Lanyard({
   // State, not a ref: the scene mounts in R3F's own root, so Band must
   // re-run its setup once the element exists.
   const [link, setLink] = useState<HTMLAnchorElement | null>(null);
+  // TEMP (?badge=debug): live frame/shader readout, see debug-readout.tsx.
+  const [debug] = useState(
+    () => new URLSearchParams(window.location.search).get("badge") === "debug",
+  );
+  const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <Canvas
+        onCreated={debug ? (state) => setGl(state.gl) : undefined}
         camera={{ fov: FOV }}
         gl={{ alpha: true }}
         // Phones and slow devices: cap resolution so the GPU keeps up with the swing.
@@ -778,6 +785,7 @@ export default function Lanyard({
           <Lightformer intensity={10} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
         </Environment>
       </Canvas>
+      {debug && gl && <DebugReadout gl={gl} />}
       {/* Hidden until a link row is hovered; positioned by Band. */}
       <a
         ref={setLink}
