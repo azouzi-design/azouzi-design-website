@@ -2,7 +2,7 @@ import { CallToAction } from "@/components/call-to-action";
 import { SoftBlurIn, SoftBlurItem } from "@/components/soft-blur-in";
 
 // The two text blocks of the home page's About & Services overlay: who I am,
-// and how I work, each one paragraph of phrases.
+// and how I work, each one paragraph of phrases; then the call to action.
 
 const intro = [
   "Senior Product Designer (+5 years designing for startups)",
@@ -37,13 +37,21 @@ export function IntroBlock({ sound = false }: { sound?: boolean }) {
   );
 }
 
-/** The services, and the call to action just below. */
+/** The services. */
 export function ServicesBlock({ sound = false }: { sound?: boolean }) {
   return (
-    <SoftBlurIn className="flex flex-col gap-3" sound={sound}>
+    <SoftBlurIn sound={sound}>
       <SoftBlurItem>
         <Phrases phrases={services} />
       </SoftBlurItem>
+    </SoftBlurIn>
+  );
+}
+
+/** The call to action: Book a Call or Copy Email, and the price badge. */
+export function CallToActionBlock({ sound = false }: { sound?: boolean }) {
+  return (
+    <SoftBlurIn sound={sound}>
       <SoftBlurItem>
         <CallToAction />
       </SoftBlurItem>

@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
 
-// Grey dotted links are the clickable text elements across the site.
+// Black dotted links are the clickable text elements across the site.
 export const linkClasses =
-  "cursor-pointer font-semibold text-gray-700 underline decoration-dotted decoration-current/70 decoration-[10%] underline-offset-4 transition-colors duration-150 hover:text-gray-1000 active:opacity-70";
+  "cursor-pointer font-medium text-gray-1000 underline decoration-dotted decoration-current/70 decoration-[10%] underline-offset-4 transition-opacity duration-150 hover:opacity-70 active:opacity-50";
 
 // The site's button size, type and press. The variants below add the shape
 // and fill.

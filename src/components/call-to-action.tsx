@@ -77,7 +77,7 @@ export function CallToAction() {
           </button>
         </motion.span>
         <motion.span
-          className="pointer-events-none text-center font-semibold text-gray-700 [grid-area:1/1]"
+          className="pointer-events-none text-center font-medium text-gray-700 [grid-area:1/1]"
           variants={swapVariants(reduced, 6)}
           initial={false}
           animate={copied ? "shown" : "hidden"}
@@ -90,7 +90,7 @@ export function CallToAction() {
         </span>
       </p>
       <motion.span
-        className="flex h-4 items-center whitespace-nowrap rounded-[2px] bg-gray-700 px-1 text-[12px] leading-none font-medium tracking-[-0.06px] text-background-100"
+        className="flex h-[18px] items-center whitespace-nowrap rounded-[2px] bg-gray-1000 px-1 text-[13px] leading-none font-medium tracking-[-0.065px] text-background-100"
         // A quick playful shake on hover (skipped with reduced motion).
         whileHover={
           reduced
@@ -102,7 +102,7 @@ export function CallToAction() {
               }
         }
       >
-        1/2 Spots left
+        $4800/mo
       </motion.span>
     </div>
   );

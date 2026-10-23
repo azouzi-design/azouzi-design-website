@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { IntroBlock, ServicesBlock } from "@/components/about-blocks";
+import { CallToActionBlock, IntroBlock, ServicesBlock } from "@/components/about-blocks";
 import { Badge } from "@/components/badge/badge";
 import { ProfilePhoto } from "@/components/profile-photo";
 import { MediaEffects } from "@/components/media-effects/media-effects";
@@ -265,17 +265,18 @@ function OverlayShell({
   );
 }
 
-/** About & Services: the profile photo (120px), the intro, then the services,
- * 48px apart in one column, centered in the viewport. The name stays visible
- * above this overlay; on short screens the column scrolls and starts 48px
- * below it (the name ends at 47px). */
+/** About & Services: the profile photo (120px), the intro, the services and
+ * the call to action, 40px apart in one column, centered in the viewport.
+ * The name stays visible above this overlay; on short screens the column
+ * scrolls and starts 40px below it (the name ends at 47px). */
 function AboutContent() {
   return (
-    <div className="flex min-h-full items-center justify-center px-4 py-[95px] text-center text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
-      <div className="flex w-[440px] max-w-full flex-col items-center gap-12">
+    <div className="flex min-h-full items-center justify-center px-4 py-[87px] text-center text-[15px] tracking-[-0.15px] text-gray-1000 [&_p]:leading-[normal]">
+      <div className="flex w-[440px] max-w-full flex-col items-center gap-10">
         <ProfilePhoto size={120} />
         <IntroBlock />
         <ServicesBlock />
+        <CallToActionBlock />
       </div>
     </div>
   );
@@ -394,7 +395,7 @@ function BottomBar({
           role="tablist"
           aria-label="Projects"
           // Slightly see-through, with a light blur of the work behind it.
-          className="button-appear flex h-12 w-full max-w-[456px] items-center rounded-[16px] bg-concept-track/70 px-1 backdrop-blur-[2px]"
+          className="button-appear flex h-12 w-full max-w-[456px] items-center rounded-[16px] bg-concept-track/85 px-1 backdrop-blur-[2px]"
           style={appearAfter(2)}
         >
           {TABS.map((tab) => {
