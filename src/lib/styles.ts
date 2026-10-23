@@ -10,8 +10,9 @@ const buttonBase =
   "flex h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 px-3 text-[15px] leading-[normal] font-medium tracking-[-0.15px] whitespace-nowrap text-gray-1000 transition-[scale,background-color,border-color] duration-200 ease-out active:scale-[0.97] active:duration-100";
 
 // The site's button: white with a stroke and 12px corners (About & Services,
-// Contact me, Return Home). Hover: the barest grey.
-export const outlineButtonClasses = `${buttonBase} rounded-[12px] border border-stroke bg-background-100 hover:bg-[color-mix(in_srgb,var(--ds-background-100),var(--ds-gray-1000)_1.5%)]`;
+// Contact me, Return Home). A faint drop shadow and a faint shade along the
+// inside bottom edge give it a little depth. Hover: the barest grey.
+export const outlineButtonClasses = `${buttonBase} rounded-[12px] border border-stroke bg-background-100 shadow-[0_1px_2px_rgba(23,23,23,0.04),inset_0_-1px_1px_rgba(23,23,23,0.04)] hover:bg-[color-mix(in_srgb,var(--ds-background-100),var(--ds-gray-1000)_1.5%)]`;
 
 // Buttons that blur in (add the .button-appear class, see globals.css) do so
 // one after another, this far apart.
