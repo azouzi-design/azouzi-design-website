@@ -108,3 +108,13 @@ body {
     animation: none;
   }
 }
+
+/* The soft blur-in (soft-blur-in.tsx) on touch screens: its hidden state is
+   shared with desktop and carries an 8px blur, which phones would still render
+   (and, over the overlays' backdrop blur, stutter on). Phones play it without
+   the blur (phone-motion.ts), so drop it from the start; matches isPhone(). */
+@media (hover: none) and (pointer: coarse) {
+  [data-blur-in] {
+    filter: none !important;
+  }
+}

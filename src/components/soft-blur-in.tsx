@@ -11,7 +11,8 @@ import {
 import { playSend } from "@/lib/sounds";
 
 // "soft-blur-in": content rises a few px, fades in and sharpens from a soft blur.
-// Phones play a version without the blur (see phone-motion.ts).
+// Phones play a version without the blur (see phone-motion.ts), and never get
+// the blur while hidden either (globals.css, [data-blur-in]).
 const EASE = [0.22, 1, 0.36, 1] as const;
 const DURATION = 1.2;
 // Moved with `transform` rather than Framer's `y`: transform runs on the
@@ -206,6 +207,7 @@ export function SoftBlurItem({
   return (
     <motion.div
       ref={ref}
+      data-blur-in
       variants={blurVariants(reduced, {}, text)}
       onUpdate={
         lines
@@ -256,6 +258,7 @@ export function SoftBlurView({
   return (
     <motion.div
       id={id}
+      data-blur-in
       className={className}
       style={style}
       initial={skipOnNavigation && appHydrated ? false : "hidden"}
