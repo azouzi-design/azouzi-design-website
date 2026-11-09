@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AboutBlocks } from "@/components/about-blocks";
 import { Badge } from "@/components/badge/badge";
 import { MediaEffects } from "@/components/media-effects/media-effects";
@@ -444,8 +445,30 @@ export function HomePage({
 }) {
   const [selected, setSelected] = useState(initial);
   // Wheel and trackpad scrolling go a little further through the gallery.
-  const [overlay, setOverlay] = useState<Overlay | null>(null);
-  const closeOverlay = useCallback(() => setOverlay(null), []);
+  // The overlay follows the URL: /about and /contact open it over the gallery
+  // (so both can be shared), / closes it. Opening and closing only touch the
+  // history (no navigation), so the page stays mounted and the overlay plays
+  // its fade exactly as before.
+  const pathname = usePathname();
+  const overlay: Overlay | null =
+    pathname === "/about" ? "about" : pathname === "/contact" ? "contact" : null;
+  // True once an overlay was opened from this page, so closing can step back
+  // to the entry underneath instead of stacking a new one.
+  const openedHere = useRef(false);
+  const openOverlay = useCallback((next: Overlay) => {
+    openedHere.current = true;
+    window.history.pushState(null, "", `/${next}`);
+  }, []);
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
+  const closeOverlay = useCallback(() => {
+    if (openedHere.current) {
+      window.history.back();
+    } else {
+      // Landed straight on /about or /contact: there's no entry to go back to.
+      window.history.replaceState(null, "", `/?project=${selectedRef.current}`);
+    }
+  }, []);
   // Off while an overlay is open: the page behind stays put.
   useScrollBoost(SCROLL_BOOST, overlay === null);
   const project = getProject(selected)!;
@@ -461,7 +484,7 @@ export function HomePage({
   return (
     <div data-concept className="min-h-svh bg-concept-background">
       <TopBar />
-      <TopButtons onOpen={setOverlay} />
+      <TopButtons onOpen={openOverlay} />
       <AnimatePresence>
         {overlay === "about" && (
           <OverlayShell key="about" label="About & Services" onClose={closeOverlay}>
@@ -479,9 +502,10 @@ export function HomePage({
         hidden={overlay !== null}
         // TEMP (?badge=nologo): no 3D name while Contact is open, to test
         // whether it causes the card's lag. Only read once Contact is open,
-        // which is always in the browser.
+        // which on the server (a direct /contact load) is skipped.
         unmount={
           overlay === "contact" &&
+          typeof window !== "undefined" &&
           !!new URLSearchParams(window.location.search)
             .get("badge")
             ?.split(",")
