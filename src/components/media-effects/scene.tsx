@@ -10,7 +10,8 @@ import { DEFAULT_EFFECT, getEffect, type Effect } from "./effects";
 // edge. The page's own media stay in place, invisible, so layout, loading and
 // playback are untouched.
 
-const MEDIA = "[data-concept] main :is(img, video)";
+// Small inline images (testimonial photos) opt out with data-no-effect.
+const MEDIA = "[data-concept] main :is(img, video):not([data-no-effect])";
 const FOV = 30;
 // Only draw media within this many screen heights of the screen.
 const DRAW_MARGIN = 0.5;

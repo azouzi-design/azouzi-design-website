@@ -11,6 +11,7 @@ import {
   type Kpi,
   type Project,
   type ProjectImage,
+  type Testimonial,
 } from "@/lib/projects";
 
 // Seconds between the text and the first image starting, so the image
@@ -108,6 +109,44 @@ function KpiBlock({ kpis, centered }: { kpis: Kpi[]; centered: boolean }) {
   );
 }
 
+/** A testimonial: the quote, then who said it, smaller and in a darker gray
+ * than the links, after their photo. Plain text in the KPIs' column, with
+ * extra room above and below so it doesn't crowd the shots around it;
+ * it blurs in like the KPIs when scrolled to. */
+function TestimonialBlock({
+  testimonial: { quote, name, role, photo },
+  centered,
+}: {
+  testimonial: Testimonial;
+  centered: boolean;
+}) {
+  return (
+    <SoftBlurView
+      scrollOnly
+      className={`w-full py-10 sm:py-16 ${centered ? "max-w-[380px] text-center" : "max-w-[320px] md:translate-x-1/2"}`}
+    >
+      <figure className={`flex flex-col gap-4 ${centered ? "items-center" : ""}`}>
+        <blockquote>
+          <p>{`\u201c${quote}\u201d`}</p>
+        </blockquote>
+        <figcaption className="flex items-center gap-2 text-[13px] tracking-[-0.065px] text-gray-900">
+          <Image
+            src={photo}
+            alt=""
+            width={20}
+            height={20}
+            unoptimized
+            // A plain image, not redrawn by the gallery's scroll effect.
+            data-no-effect
+            className="size-5 shrink-0 rounded-full object-cover"
+          />
+          {name} — {role}
+        </figcaption>
+      </figure>
+    </SoftBlurView>
+  );
+}
+
 /**
  * A project's content under its header: the intro paragraphs, then its image
  * runs and KPIs, as the home page shows it. Without `centered` the text
@@ -154,6 +193,8 @@ export function ProjectBody({
       {sections.map((section, i) =>
         "kpis" in section ? (
           <KpiBlock key={i} kpis={section.kpis} centered={centered} />
+        ) : "testimonial" in section ? (
+          <TestimonialBlock key={i} testimonial={section.testimonial} centered={centered} />
         ) : (
           <ImageRun
             key={i}

@@ -56,6 +56,55 @@ const cynoiaShots = shots("cynoia", "Cynoia", [
   ["13.png", 3200, 1800],
 ], [2, 3, 5, 6, 8, 9, 11, 14, 16]);
 
+const miscShots = shots("misc", "Misc.", [
+  ["1.mp4", 1920, 1188],
+  ["2.png", 3200, 1800],
+  ["3.mp4", 1920, 1144],
+  ["4.mp4", 1920, 1138],
+  ["5.mp4", 1920, 1140],
+  ["6.png", 3200, 1800],
+  ["7.png", 3200, 1800],
+  ["15.mp4", 1920, 1080],
+  ["8.mp4", 1920, 1080],
+  ["13-v3.png", 3200, 1800],
+  ["10.mp4", 1920, 1186],
+  ["12.mp4", 1920, 1186],
+  ["14.mp4", 1920, 1142],
+// The video formats (3, 4, 5) get tighter corners.
+], [1, 13, 15], { 3: 6, 4: 6, 5: 6 });
+
+// From the previous site, photos included.
+const TESTIMONIALS = {
+  supplyzpro: {
+    quote:
+      "Clean design, smooth execution, and strong attention to detail. He understood our vision and delivered beyond expectations. Highly recommended.",
+    name: "Seddik Houimli",
+    photo: "/images/testimonials/seddik-houimli.jpg",
+    role: "Founder @ SupplyzPro",
+  },
+  edugato: {
+    quote:
+      "Ahmed is a meticulous and perfectionist designer. The sharpness and creativity he brought to our product and brand were top-notch!",
+    name: "Nacer Abdelli",
+    photo: "/images/testimonials/nacer-abdelli.jpg",
+    role: "Founder @ EduGato",
+  },
+  tym: {
+    quote:
+      "Azouzi understands design as both structure and style. He rebranded our HR Tech platform, built a scalable UI system, and meaningfully improved our user experience.",
+    name: "Khalil Ben Chebil",
+    photo: "/images/testimonials/khalil-ben-chebil.jpg",
+    role: "CEO @ TYM",
+  },
+  publicbrain: {
+    quote:
+      "Under Azouzi's direction and advice, workflows have shifted from basic aesthetics toward the development of scalable, high-logic systems.",
+    name: "Aziz Belhabib",
+    photo: "/images/testimonials/aziz-belhabib.jpg",
+    role: "Founder @ Publicbrain AI",
+  },
+} satisfies Record<string, Testimonial>;
+
 export type Project = {
   id: string;
   logo: string;
@@ -74,11 +123,16 @@ export type Project = {
 
 export type Kpi = { value: string; label: string };
 
+/** A client's words, with who said them and their photo (a square file in
+ * public/images/testimonials/). */
+export type Testimonial = { quote: string; name: string; role: string; photo: string };
+
 /** A run of images (null: an empty placeholder block until the image exists),
- * or headline results like "Raised $9M". */
+ * headline results like "Raised $9M", or a testimonial. */
 export type ProjectSection =
   | { images: (ProjectImage | null)[] }
-  | { kpis: Kpi[] };
+  | { kpis: Kpi[] }
+  | { testimonial: Testimonial };
 
 const PLACEHOLDERS: ProjectSection = { images: [null, null] };
 
@@ -203,26 +257,21 @@ export const projects: Project[] = [
     paragraphs: [
       "Bits and pieces from projects I've worked on over the past few years. Not everything gets a full case study, so I put the pieces I still like here, mostly client work for early-stage startups.",
     ],
+    // A testimonial follows the client's own work (SupplyzPro has none shown
+    // yet, so it comes early, to space the four out down the page).
     sections: [
-      {
-        images: shots("misc", "Misc.", [
-          ["1.mp4", 1920, 1188],
-          ["2.png", 3200, 1800],
-          ["3.mp4", 1920, 1144],
-          ["4.mp4", 1920, 1138],
-          ["5.mp4", 1920, 1140],
-          ["6.png", 3200, 1800],
-          ["7.png", 3200, 1800],
-          ["15.mp4", 1920, 1080],
-          ["16.mp4", 1920, 1080],
-          ["8.mp4", 1920, 1080],
-          ["13-v3.png", 3200, 1800],
-          ["10.mp4", 1920, 1186],
-          ["12.mp4", 1920, 1186],
-          ["14.mp4", 1920, 1142],
-        // The video formats (3, 4, 5) get tighter corners.
-        ], [1, 13, 15, 16], { 3: 6, 4: 6, 5: 6 }),
-      },
+      { images: miscShots.slice(0, 3) },
+      { testimonial: TESTIMONIALS.supplyzpro },
+      // 4, 5, 6, 7: the last two are EduGato.
+      { images: miscShots.slice(3, 7) },
+      { testimonial: TESTIMONIALS.edugato },
+      // 15, 8, 13: the last is the TYM logo iterations.
+      { images: miscShots.slice(7, 10) },
+      { testimonial: TESTIMONIALS.tym },
+      // 10, 12: Publicbrain.
+      { images: miscShots.slice(10, 12) },
+      { testimonial: TESTIMONIALS.publicbrain },
+      { images: miscShots.slice(12) },
     ],
   },
 ];

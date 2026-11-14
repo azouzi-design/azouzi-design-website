@@ -5,6 +5,7 @@
   --ds-background-100: #ffffff; /* page, buttons */
   --ds-background-200: #f6f6f6; /* image placeholders, video backdrop */
   --ds-gray-700: #8f8f8f; /* links */
+  --ds-gray-900: #666666; /* testimonial attribution */
   --ds-gray-1000: #171717; /* body text */
   --ds-stroke: #ebebeb; /* button outline, outline on project images that need one */
   /* Home page (Figma "home-concept" frame): page, project switcher track. */
@@ -37,6 +38,7 @@
   --color-background-100: var(--ds-background-100);
   --color-background-200: var(--ds-background-200);
   --color-gray-700: var(--ds-gray-700);
+  --color-gray-900: var(--ds-gray-900);
   --color-gray-1000: var(--ds-gray-1000);
   --color-stroke: var(--ds-stroke);
   --color-concept-background: var(--ds-concept-background);
